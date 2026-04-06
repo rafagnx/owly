@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   request: NextRequest,
@@ -26,7 +27,7 @@ export async function GET(
 
     return NextResponse.json(messages);
   } catch (error) {
-    console.error("Failed to fetch messages:", error);
+    logger.error("Failed to fetch messages:", error);
     return NextResponse.json(
       { error: "Failed to fetch messages" },
       { status: 500 }
@@ -76,7 +77,7 @@ export async function POST(
 
     return NextResponse.json(message, { status: 201 });
   } catch (error) {
-    console.error("Failed to create message:", error);
+    logger.error("Failed to create message:", error);
     return NextResponse.json(
       { error: "Failed to create message" },
       { status: 500 }

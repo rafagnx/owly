@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error("Failed to fetch activity logs:", error);
+    logger.error("Failed to fetch activity logs:", error);
     return NextResponse.json(
       { error: "Failed to fetch activity logs" },
       { status: 500 }

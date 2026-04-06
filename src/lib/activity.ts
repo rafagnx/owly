@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function logActivity(
   action: string,
@@ -18,6 +19,6 @@ export async function logActivity(
       },
     });
   } catch (error) {
-    console.error("Failed to log activity:", error);
+    logger.error("Failed to log activity", error);
   }
 }

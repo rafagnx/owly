@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function PUT(
   request: NextRequest,
@@ -37,7 +38,7 @@ export async function PUT(
 
     return NextResponse.json(entry);
   } catch (error) {
-    console.error("Failed to update entry:", error);
+    logger.error("Failed to update entry:", error);
     return NextResponse.json(
       { error: "Failed to update entry" },
       { status: 500 }
@@ -64,7 +65,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete entry:", error);
+    logger.error("Failed to delete entry:", error);
     return NextResponse.json(
       { error: "Failed to delete entry" },
       { status: 500 }

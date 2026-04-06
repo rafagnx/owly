@@ -2,6 +2,7 @@ import { Client, LocalAuth, Message } from "whatsapp-web.js";
 import * as qrcode from "qrcode";
 import { prisma } from "@/lib/prisma";
 import { chat, createNewConversation } from "@/lib/ai/engine";
+import { logger } from "@/lib/logger";
 
 let whatsappClient: Client | null = null;
 let currentQR: string | null = null;
@@ -18,7 +19,7 @@ export function getWhatsAppStatus() {
 
 export async function initWhatsApp(): Promise<void> {
   if (whatsappClient) {
-    console.log("[WhatsApp] Client already exists");
+    logger.info("[WhatsApp] Client already exists");
     return;
   }
 
@@ -39,14 +40,14 @@ export async function initWhatsApp(): Promise<void> {
   });
 
   client.on("qr", async (qr: string) => {
-    console.log("[WhatsApp] QR code received");
+    logger.info("[WhatsApp] QR code received");
     currentQR = await qrcode.toDataURL(qr);
     connectionStatus = "qr_ready";
     statusMessage = "Scan the QR code with WhatsApp on your phone";
   });
 
   client.on("ready", async () => {
-    console.log("[WhatsApp] Client is ready");
+    logger.info("[WhatsApp] Client is ready");
     currentQR = null;
     connectionStatus = "connected";
     statusMessage = "Connected to WhatsApp";
@@ -59,19 +60,19 @@ export async function initWhatsApp(): Promise<void> {
   });
 
   client.on("authenticated", () => {
-    console.log("[WhatsApp] Authenticated");
+    logger.info("[WhatsApp] Authenticated");
     connectionStatus = "connecting";
     statusMessage = "Authenticated, loading chats...";
   });
 
   client.on("auth_failure", (message: string) => {
-    console.error("[WhatsApp] Auth failure:", message);
+    logger.error(`[WhatsApp] Auth failure: ${message}`);
     connectionStatus = "error";
     statusMessage = `Authentication failed: ${message}`;
   });
 
   client.on("disconnected", async (reason: string) => {
-    console.log("[WhatsApp] Disconnected:", reason);
+    logger.info(`[WhatsApp] Disconnected: ${reason}`);
     connectionStatus = "disconnected";
     statusMessage = `Disconnected: ${reason}`;
     whatsappClient = null;

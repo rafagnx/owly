@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function PUT(
   request: NextRequest,
@@ -36,7 +37,7 @@ export async function PUT(
 
     return NextResponse.json(category);
   } catch (error) {
-    console.error("Failed to update category:", error);
+    logger.error("Failed to update category:", error);
     return NextResponse.json(
       { error: "Failed to update category" },
       { status: 500 }
@@ -63,7 +64,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete category:", error);
+    logger.error("Failed to delete category:", error);
     return NextResponse.json(
       { error: "Failed to delete category" },
       { status: 500 }

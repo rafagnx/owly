@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   request: NextRequest,
@@ -52,7 +53,7 @@ export async function GET(
 
     return NextResponse.json({ ...customer, conversations });
   } catch (error) {
-    console.error("Failed to fetch customer:", error);
+    logger.error("Failed to fetch customer:", error);
     return NextResponse.json(
       { error: "Failed to fetch customer" },
       { status: 500 }
@@ -99,7 +100,7 @@ export async function PUT(
 
     return NextResponse.json(customer);
   } catch (error) {
-    console.error("Failed to update customer:", error);
+    logger.error("Failed to update customer:", error);
     return NextResponse.json(
       { error: "Failed to update customer" },
       { status: 500 }
@@ -126,7 +127,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete customer:", error);
+    logger.error("Failed to delete customer:", error);
     return NextResponse.json(
       { error: "Failed to delete customer" },
       { status: 500 }

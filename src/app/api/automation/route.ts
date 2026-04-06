@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(rules);
   } catch (error) {
-    console.error("Failed to fetch automation rules:", error);
+    logger.error("Failed to fetch automation rules:", error);
     return NextResponse.json(
       { error: "Failed to fetch automation rules" },
       { status: 500 }
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(rule, { status: 201 });
   } catch (error) {
-    console.error("Failed to create automation rule:", error);
+    logger.error("Failed to create automation rule:", error);
     return NextResponse.json(
       { error: "Failed to create automation rule" },
       { status: 500 }

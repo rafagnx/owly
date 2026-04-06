@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import OpenAI from "openai";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   try {
@@ -120,7 +121,7 @@ Your answer here...
       totalEntries: entries.length,
     });
   } catch (error) {
-    console.error("Failed to test knowledge base:", error);
+    logger.error("Failed to test knowledge base:", error);
     const message =
       error instanceof Error ? error.message : "Failed to test knowledge base";
     return NextResponse.json({ error: message }, { status: 500 });

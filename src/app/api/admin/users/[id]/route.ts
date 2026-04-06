@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 export async function PUT(
   request: NextRequest,
@@ -60,7 +61,7 @@ export async function PUT(
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("Failed to update admin user:", error);
+    logger.error("Failed to update admin user:", error);
     return NextResponse.json(
       { error: "Failed to update admin user" },
       { status: 500 }
@@ -92,7 +93,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete admin user:", error);
+    logger.error("Failed to delete admin user:", error);
     return NextResponse.json(
       { error: "Failed to delete admin user" },
       { status: 500 }

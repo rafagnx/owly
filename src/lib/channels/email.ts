@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 import { chat, createNewConversation } from "@/lib/ai/engine";
 import { escapeHtml, sanitizeEmailSubject } from "@/lib/security";
+import { logger } from "@/lib/logger";
 
 interface EmailConfig {
   imapHost: string;
@@ -125,19 +126,19 @@ export async function startEmailListener() {
 
   const config = await getEmailConfig();
   if (!config) {
-    console.log("[Email] Not configured, skipping listener start");
+    logger.info("[Email] Not configured, skipping listener start");
     return;
   }
 
   const imap = createImapConnection(config);
 
   imap.once("ready", () => {
-    console.log("[Email] IMAP connected");
+    logger.info("[Email] IMAP connected");
     isListening = true;
 
     imap.openBox("INBOX", false, (err) => {
       if (err) {
-        console.error("[Email] Error opening inbox:", err);
+        logger.error("[Email] Error opening inbox:", err);
         return;
       }
 
@@ -151,7 +152,7 @@ export async function startEmailListener() {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               simpleParser(stream as any, (err: Error | null, parsed: ParsedMail) => {
                 if (err) {
-                  console.error("[Email] Parse error:", err);
+                  logger.error("[Email] Parse error:", err);
                   return;
                 }
                 processEmail(parsed, config);
@@ -164,12 +165,12 @@ export async function startEmailListener() {
   });
 
   imap.once("error", (err: Error) => {
-    console.error("[Email] IMAP error:", err);
+    logger.error("[Email] IMAP error:", err);
     isListening = false;
   });
 
   imap.once("end", () => {
-    console.log("[Email] IMAP disconnected");
+    logger.info("[Email] IMAP disconnected");
     isListening = false;
   });
 

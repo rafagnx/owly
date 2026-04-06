@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(responses);
   } catch (error) {
-    console.error("Failed to fetch canned responses:", error);
+    logger.error("Failed to fetch canned responses:", error);
     return NextResponse.json(
       { error: "Failed to fetch canned responses" },
       { status: 500 }
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    console.error("Failed to create canned response:", error);
+    logger.error("Failed to create canned response:", error);
     return NextResponse.json(
       { error: "Failed to create canned response" },
       { status: 500 }

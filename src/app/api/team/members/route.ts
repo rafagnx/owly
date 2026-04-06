@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(members);
   } catch (error) {
-    console.error("Failed to fetch members:", error);
+    logger.error("Failed to fetch members:", error);
     return NextResponse.json(
       { error: "Failed to fetch members" },
       { status: 500 }
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(member, { status: 201 });
   } catch (error) {
-    console.error("Failed to create member:", error);
+    logger.error("Failed to create member:", error);
     return NextResponse.json(
       { error: "Failed to create member" },
       { status: 500 }

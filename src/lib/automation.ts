@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 interface Condition {
   field: string;
@@ -139,10 +140,7 @@ export async function evaluateRules(
           data: { triggerCount: { increment: 1 } },
         })
         .catch((err) =>
-          console.error(
-            `Failed to increment trigger count for rule ${rule.id}:`,
-            err
-          )
+          logger.error(`Failed to increment trigger count for rule ${rule.id}`, err)
         );
     }
   }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(tickets);
   } catch (error) {
-    console.error("Failed to fetch tickets:", error);
+    logger.error("Failed to fetch tickets:", error);
     return NextResponse.json(
       { error: "Failed to fetch tickets" },
       { status: 500 }
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(ticket, { status: 201 });
   } catch (error) {
-    console.error("Failed to create ticket:", error);
+    logger.error("Failed to create ticket:", error);
     return NextResponse.json(
       { error: "Failed to create ticket" },
       { status: 500 }

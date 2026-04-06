@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -18,7 +19,7 @@ export async function GET() {
 
     return NextResponse.json(users);
   } catch (error) {
-    console.error("Failed to fetch admin users:", error);
+    logger.error("Failed to fetch admin users:", error);
     return NextResponse.json(
       { error: "Failed to fetch admin users" },
       { status: 500 }
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
-    console.error("Failed to create admin user:", error);
+    logger.error("Failed to create admin user:", error);
     return NextResponse.json(
       { error: "Failed to create admin user" },
       { status: 500 }

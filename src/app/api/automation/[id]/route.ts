@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function PUT(
   request: NextRequest,
@@ -42,7 +43,7 @@ export async function PUT(
 
     return NextResponse.json(rule);
   } catch (error) {
-    console.error("Failed to update automation rule:", error);
+    logger.error("Failed to update automation rule:", error);
     return NextResponse.json(
       { error: "Failed to update automation rule" },
       { status: 500 }
@@ -69,7 +70,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete automation rule:", error);
+    logger.error("Failed to delete automation rule:", error);
     return NextResponse.json(
       { error: "Failed to delete automation rule" },
       { status: 500 }

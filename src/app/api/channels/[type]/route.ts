@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 const CHANNEL_TYPES = ["whatsapp", "email", "phone"];
 
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json(channel);
   } catch (error) {
-    console.error("Failed to fetch channel:", error);
+    logger.error("Failed to fetch channel:", error);
     return NextResponse.json(
       { error: "Failed to fetch channel" },
       { status: 500 }
@@ -73,7 +74,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json(channel);
   } catch (error) {
-    console.error("Failed to update channel:", error);
+    logger.error("Failed to update channel:", error);
     return NextResponse.json(
       { error: "Failed to update channel" },
       { status: 500 }
@@ -157,7 +158,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   } catch (error) {
-    console.error("Failed to perform channel action:", error);
+    logger.error("Failed to perform channel action:", error);
     return NextResponse.json(
       { error: "Failed to perform channel action" },
       { status: 500 }

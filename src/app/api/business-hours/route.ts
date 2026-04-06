@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -15,7 +16,7 @@ export async function GET() {
 
     return NextResponse.json(config);
   } catch (error) {
-    console.error("Failed to fetch business hours:", error);
+    logger.error("Failed to fetch business hours:", error);
     return NextResponse.json(
       { error: "Failed to fetch business hours" },
       { status: 500 }
@@ -84,7 +85,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(config);
   } catch (error) {
-    console.error("Failed to update business hours:", error);
+    logger.error("Failed to update business hours:", error);
     return NextResponse.json(
       { error: "Failed to update business hours" },
       { status: 500 }

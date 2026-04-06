@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 const CHANNEL_TYPES = ["whatsapp", "email", "phone"];
 
@@ -26,7 +27,7 @@ export async function GET() {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Failed to fetch channels:", error);
+    logger.error("Failed to fetch channels:", error);
     return NextResponse.json(
       { error: "Failed to fetch channels" },
       { status: 500 }
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(channel, { status: 200 });
   } catch (error) {
-    console.error("Failed to save channel:", error);
+    logger.error("Failed to save channel:", error);
     return NextResponse.json(
       { error: "Failed to save channel" },
       { status: 500 }

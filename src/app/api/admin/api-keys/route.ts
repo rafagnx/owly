@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import { logger } from "@/lib/logger";
 
 function maskKey(key: string): string {
   if (key.length <= 8) return key;
@@ -24,7 +25,7 @@ export async function GET() {
 
     return NextResponse.json(masked);
   } catch (error) {
-    console.error("Failed to fetch API keys:", error);
+    logger.error("Failed to fetch API keys:", error);
     return NextResponse.json(
       { error: "Failed to fetch API keys" },
       { status: 500 }
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Failed to create API key:", error);
+    logger.error("Failed to create API key:", error);
     return NextResponse.json(
       { error: "Failed to create API key" },
       { status: 500 }

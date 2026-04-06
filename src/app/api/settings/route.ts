@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { maskSettingsSecrets } from "@/lib/security";
 import { updateSettingsSchema, validateBody } from "@/lib/validations";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -17,7 +18,7 @@ export async function GET() {
 
     return NextResponse.json(maskSettingsSecrets(settings));
   } catch (error) {
-    console.error("Failed to fetch settings:", error);
+    logger.error("Failed to fetch settings:", error);
     return NextResponse.json(
       { error: "Failed to fetch settings" },
       { status: 500 }
@@ -47,7 +48,7 @@ export async function PUT(request: Request) {
 
     return NextResponse.json(maskSettingsSecrets(settings));
   } catch (error) {
-    console.error("Failed to update settings:", error);
+    logger.error("Failed to update settings:", error);
     return NextResponse.json(
       { error: "Failed to update settings" },
       { status: 500 }
