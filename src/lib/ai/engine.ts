@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
 import { owlyTools, executeToolCall } from "./tools";
 import { emitNewMessage } from "@/lib/realtime";
+import { analyzeSentiment, detectIntent, estimateConfidence, requiresHumanApproval } from "./guardrails";
 import type {
   AIMessage,
   AIConfig,
@@ -143,6 +144,25 @@ export async function chat(
 
   messages.push({ role: "user", content: userMessage });
 
+  // Guardrails: check if human approval needed
+  const approval = requiresHumanApproval(userMessage);
+  if (approval.required) {
+    const sentiment = analyzeSentiment(userMessage);
+    const intent = detectIntent(userMessage);
+
+    // Store metadata for dashboard visibility
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: {
+        metadata: {
+          escalationReason: approval.reason,
+          sentiment: sentiment.sentiment,
+          intent: intent.intent,
+        },
+      },
+    });
+  }
+
   // Save user message
   await prisma.message.create({
     data: {
@@ -169,6 +189,15 @@ export async function chat(
     where: { id: conversationId },
     data: { updatedAt: new Date() },
   });
+
+  // Confidence scoring
+  const confidence = estimateConfidence(response, knowledgeBase.length, false);
+  if (confidence.shouldEscalate) {
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { status: "escalated" },
+    });
+  }
 
   emitNewMessage(conversationId, { id: savedMessage.id, role: "assistant", content: response });
 
