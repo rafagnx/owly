@@ -129,6 +129,7 @@ model Conversation {
   messages        Message[]
   tickets         Ticket[]
   tags            ConversationTag[]
+  notes           InternalNote[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
@@ -405,11 +406,12 @@ model ApiKey {
 // ==================== INTERNAL NOTES ====================
 
 model InternalNote {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   content        String
-  authorName     String   @default("Admin")
-  createdAt      DateTime @default(now())
+  authorName     String       @default("Admin")
+  createdAt      DateTime     @default(now())
 
   @@index([conversationId])
 }

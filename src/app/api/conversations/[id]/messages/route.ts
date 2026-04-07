@@ -62,10 +62,13 @@ export async function POST(
       );
     }
 
+    const validRoles = ["customer", "assistant", "system"];
+    const messageRole = validRoles.includes(role) ? role : "assistant";
+
     const message = await prisma.message.create({
       data: {
         conversationId: id,
-        role: role || "admin",
+        role: messageRole,
         content: content.trim(),
       },
     });

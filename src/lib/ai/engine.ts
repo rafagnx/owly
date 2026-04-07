@@ -184,13 +184,18 @@ async function callAI(
 
   const openai = new OpenAI({ apiKey: config.apiKey });
 
-  const response = await openai.chat.completions.create({
-    model: config.model,
-    messages: messages as OpenAI.ChatCompletionMessageParam[],
-    tools: owlyTools as OpenAI.ChatCompletionTool[],
-    max_tokens: config.maxTokens,
-    temperature: config.temperature,
-  });
+  let response;
+  try {
+    response = await openai.chat.completions.create({
+      model: config.model,
+      messages: messages as OpenAI.ChatCompletionMessageParam[],
+      tools: owlyTools as OpenAI.ChatCompletionTool[],
+      max_tokens: config.maxTokens,
+      temperature: config.temperature,
+    });
+  } catch {
+    return "I'm temporarily unable to process your request. Please try again in a moment, or I can connect you with a team member.";
+  }
 
   const choice = response.choices[0];
 

@@ -86,57 +86,60 @@ export async function initWhatsApp(): Promise<void> {
   });
 
   client.on("message", async (message: Message) => {
-    if (message.fromMe) return;
+    try {
+      if (message.fromMe) return;
 
-    const contact = await message.getContact();
-    const customerName = contact.pushname || contact.name || "Unknown";
-    const customerContact = message.from;
+      const contact = await message.getContact();
+      const customerName = contact.pushname || contact.name || "Unknown";
+      const customerContact = message.from;
 
-    // Resolve customer identity across channels
-    const customerId = await resolveCustomer("whatsapp", customerContact, customerName);
+      // Resolve customer identity across channels
+      const customerId = await resolveCustomer("whatsapp", customerContact, customerName);
 
-    // Find or create conversation
-    let conversation = await prisma.conversation.findFirst({
-      where: {
-        channel: "whatsapp",
-        status: { in: ["active", "escalated"] },
-        OR: [
-          { customerId },
-          { customerContact },
-        ],
-      },
-    });
+      // Find or create conversation
+      let conversation = await prisma.conversation.findFirst({
+        where: {
+          channel: "whatsapp",
+          status: { in: ["active", "escalated"] },
+          OR: [
+            { customerId },
+            { customerContact },
+          ],
+        },
+      });
 
-    if (!conversation) {
-      conversation = await createNewConversation(
-        "whatsapp",
-        customerName,
-        customerContact,
-        customerId
-      );
-    }
+      if (!conversation) {
+        conversation = await createNewConversation(
+          "whatsapp",
+          customerName,
+          customerContact,
+          customerId
+        );
+      }
 
-    let messageContent = message.body;
+      let messageContent = message.body;
 
-    // Handle media messages
-    if (message.hasMedia) {
-      const media = await message.downloadMedia();
-      if (media) {
-        const mediaType = media.mimetype.split("/")[0];
-        messageContent = `[${mediaType} attachment: ${media.filename || "media"}] ${message.body || ""}`;
+      // Handle media messages
+      if (message.hasMedia) {
+        const media = await message.downloadMedia();
+        if (media) {
+          const mediaType = media.mimetype.split("/")[0];
+          messageContent = `[${mediaType} attachment: ${media.filename || "media"}] ${message.body || ""}`;
 
-        // If it's an audio message, we could add STT here
-        if (mediaType === "audio") {
-          messageContent = `[Voice message received] ${message.body || ""}`;
+          if (mediaType === "audio") {
+            messageContent = `[Voice message received] ${message.body || ""}`;
+          }
         }
       }
+
+      // Get AI response
+      const aiResponse = await chat(conversation.id, messageContent);
+
+      // Send response back via WhatsApp
+      await message.reply(aiResponse);
+    } catch (error) {
+      logger.error("[WhatsApp] Failed to process message:", error);
     }
-
-    // Get AI response
-    const aiResponse = await chat(conversation.id, messageContent);
-
-    // Send response back via WhatsApp
-    await message.reply(aiResponse);
   });
 
   whatsappClient = client;

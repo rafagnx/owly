@@ -183,7 +183,12 @@ export async function handleSpeechInput(
   }
 
   // Get AI response
-  const aiResponse = await chat(conversationId, speechResult);
+  let aiResponse: string;
+  try {
+    aiResponse = await chat(conversationId, speechResult);
+  } catch {
+    return generateTwiMLSay("I'm sorry, I'm having trouble right now. Please try again or hold for an agent.");
+  }
 
   // Update call log
   await prisma.callLog.updateMany({

@@ -57,6 +57,23 @@ export async function PUT(
     const body = await request.json();
     const { status, customerName, customerContact, summary, satisfaction, tagIds } = body;
 
+    const validStatuses = ["active", "resolved", "closed", "escalated", "snoozed"];
+    if (status !== undefined && !validStatuses.includes(status)) {
+      return NextResponse.json(
+        { error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    if (satisfaction !== undefined && satisfaction !== null) {
+      if (!Number.isInteger(satisfaction) || satisfaction < 1 || satisfaction > 5) {
+        return NextResponse.json(
+          { error: "Satisfaction must be an integer between 1 and 5" },
+          { status: 400 }
+        );
+      }
+    }
+
     const existing = await prisma.conversation.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(

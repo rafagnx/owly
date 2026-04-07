@@ -190,7 +190,9 @@ export async function startEmailListener() {
                   logger.error("[Email] Parse error:", err);
                   return;
                 }
-                processEmail(parsed, config);
+                processEmail(parsed, config).catch((e) =>
+                  logger.error("[Email] Failed to process email:", e)
+                );
               });
             });
           });

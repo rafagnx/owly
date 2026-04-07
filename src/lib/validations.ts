@@ -22,7 +22,7 @@ export const setupSchema = z.object({
 
 // Conversations
 export const createConversationSchema = z.object({
-  channel: z.string().min(1, "Channel is required").max(50),
+  channel: z.enum(["whatsapp", "email", "phone", "api", "widget"]),
   customerName: z.string().max(200).optional(),
   customerContact: z.string().max(500).optional(),
   status: z.enum(["active", "resolved", "closed", "escalated"]).optional(),
@@ -198,7 +198,7 @@ export const createAdminSchema = z.object({
   username: z.string().min(3).max(100),
   password: z.string().min(6).max(200),
   name: z.string().max(200).optional(),
-  role: z.enum(["admin", "editor", "viewer"]).default("admin"),
+  role: z.enum(["admin", "supervisor", "agent", "viewer"]).default("admin"),
 });
 
 // API Keys
