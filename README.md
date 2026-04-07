@@ -16,8 +16,8 @@
 <p align="center">
   <a href="https://github.com/Hesper-Labs/owly/actions/workflows/ci.yml"><img src="https://github.com/Hesper-Labs/owly/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
-  <img src="https://img.shields.io/badge/version-0.2.1-brightgreen.svg" alt="Version" />
-  <img src="https://img.shields.io/badge/tests-228%20passed-success.svg" alt="Tests" />
+  <img src="https://img.shields.io/badge/version-0.2.2-brightgreen.svg" alt="Version" />
+  <img src="https://img.shields.io/badge/tests-274%20passed-success.svg" alt="Tests" />
   <img src="https://img.shields.io/badge/helm-ready-0F1689.svg" alt="Helm" />
   <img src="https://img.shields.io/badge/node-%3E%3D20-green.svg" alt="Node" />
   <img src="https://img.shields.io/badge/typescript-5.x-blue.svg" alt="TypeScript" />
@@ -404,7 +404,7 @@ Every API response includes enterprise headers: `X-Request-Id`, `X-RateLimit-Lim
 | **WhatsApp** | whatsapp-web.js |
 | **Auth** | JWT + bcrypt (12 rounds) |
 | **Validation** | Zod schemas on all endpoints |
-| **Testing** | Vitest (228 tests) |
+| **Testing** | Vitest (274 tests) |
 | **Charts** | Pure CSS/SVG (zero dependencies) |
 | **Deployment** | Docker Compose / Kubernetes (Helm) |
 

@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-04-08
+
+### Added
+
+- Role-Based Access Control (RBAC): 4 roles (admin/supervisor/agent/viewer), 40+ granular permissions, route auth helper
+- AI Guardrails: confidence scoring, blocked topic detection, human approval triggers, sentiment analysis, intent detection, suggested replies
+- Conversation Management Engine: 4 routing strategies, transfer, merge, snooze, SLA breach auto-escalation, macro execution
+- Internationalization (i18n): 6 languages (EN, TR, DE, ES, AR, FR), RTL support, 100+ translation keys
+- GDPR Compliance: PII detection/redaction, customer data export, data deletion/anonymization, retention policy enforcement
+- Plugin System: hook-based event architecture, 11 built-in events, priority pipeline
+- Custom Fields: 8 field types, validation, support for conversation/ticket/customer entities
+- Live Chat Widget: embeddable JS widget for customer websites, configurable colors/position/greeting
+- Campaign Manager: customer segmentation, proactive messaging, target audience matching
+- Flow Builder: 7 node types, decision tree flows, variable interpolation, cycle validation
+- 46 new tests (274 total across 25 files)
+
+### Fixed
+
+- Email IMAP listener crash on processEmail failure (now catches and logs)
+- WhatsApp message handler crash on any processing error (now wrapped in try-catch)
+- AI engine crash on OpenAI API error (now returns graceful fallback message)
+- Phone speech handler crash on AI error (now returns user-friendly TwiML)
+- Conversation satisfaction endpoint missing existence check (now returns 404)
+- Conversation PUT accepting invalid status values (now enum validated)
+- Conversation PUT accepting invalid satisfaction values (now integer 1-5 validated)
+- Message creation using invalid default role "admin" (now defaults to "assistant")
+- Message creation accepting any role string (now validated against enum)
+- Webhook PUT accepting unvalidated body (now validates URL, method, known fields only)
+- Webhook PUT/DELETE missing existence check (now returns 404)
+- InternalNote orphaned on conversation deletion (now cascade deletes via FK)
+- Admin role enum mismatch between validations and RBAC (now aligned: admin/supervisor/agent/viewer)
+- Conversation channel accepting free-form string (now enum: whatsapp/email/phone/api/widget)
+
 ## [0.2.1] - 2026-04-07
 
 ### Added
