@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
 import { owlyTools, executeToolCall } from "./tools";
+import { emitNewMessage } from "@/lib/realtime";
 import type {
   AIMessage,
   AIConfig,
@@ -155,7 +156,7 @@ export async function chat(
   const response = await callAI(config, messages, conversationId);
 
   // Save assistant message
-  await prisma.message.create({
+  const savedMessage = await prisma.message.create({
     data: {
       conversationId,
       role: "assistant",
@@ -168,6 +169,8 @@ export async function chat(
     where: { id: conversationId },
     data: { updatedAt: new Date() },
   });
+
+  emitNewMessage(conversationId, { id: savedMessage.id, role: "assistant", content: response });
 
   return response;
 }

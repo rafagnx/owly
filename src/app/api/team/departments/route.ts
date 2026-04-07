@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { parsePagination, paginatedResponse } from "@/lib/pagination";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request, "team:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const { page, limit, skip, take } = parsePagination(searchParams);
@@ -33,6 +37,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request, "team:create");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const body = await request.json();
     const { name, description, email } = body;

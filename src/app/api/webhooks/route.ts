@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { parsePagination, paginatedResponse } from "@/lib/pagination";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request, "webhooks:read");
+  if (!isAuthenticated(auth)) return auth;
+
   const { searchParams } = new URL(request.url);
   const { page, limit, skip, take } = parsePagination(searchParams);
 
@@ -19,6 +23,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request, "webhooks:create");
+  if (!isAuthenticated(auth)) return auth;
+
   const body = await request.json();
   const { name, description, url, method, headers, triggerOn } = body;
 

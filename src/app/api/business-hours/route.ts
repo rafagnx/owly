@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request, "business-hours:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     let config = await prisma.businessHours.findUnique({
       where: { id: "default" },
@@ -25,6 +29,9 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
+  const auth = await requireAuth(request, "business-hours:update");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const body = await request.json();
     const {

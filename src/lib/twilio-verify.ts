@@ -24,10 +24,12 @@ export function validateTwilioSignature(
     .update(Buffer.from(data, "utf-8"))
     .digest("base64");
 
-  return crypto.timingSafeEqual(
-    Buffer.from(computed),
-    Buffer.from(signature)
-  );
+  const computedBuf = Buffer.from(computed);
+  const signatureBuf = Buffer.from(signature);
+
+  if (computedBuf.length !== signatureBuf.length) return false;
+
+  return crypto.timingSafeEqual(computedBuf, signatureBuf);
 }
 
 /**

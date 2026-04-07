@@ -36,9 +36,10 @@ model Settings {
   imapUser        String   @default("")
   imapPass        String   @default("")
   whatsappMode    String   @default("web")
-  whatsappApiKey  String   @default("")
-  whatsappPhone   String   @default("")
-  createdAt       DateTime @default(now())
+  whatsappApiKey      String   @default("")
+  whatsappPhone       String   @default("")
+  telegramBotToken    String   @default("")
+  createdAt           DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
 
@@ -415,4 +416,35 @@ model InternalNote {
   createdAt      DateTime     @default(now())
 
   @@index([conversationId])
+}
+
+// ==================== CAMPAIGNS ====================
+
+model Campaign {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  channel     String   @default("email")
+  message     String
+  subject     String   @default("")
+  segments    Json     @default("[]")
+  status      String   @default("draft") // draft, scheduled, running, completed, paused
+  scheduledAt DateTime?
+  sentCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== FLOWS ====================
+
+model Flow {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  startNodeId String   @default("")
+  nodes       Json     @default("[]")
+  isActive    Boolean  @default(false)
+  triggerCount Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -3,11 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { parsePagination, paginatedResponse } from "@/lib/pagination";
 import { retryDelivery } from "@/lib/webhook-delivery";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth(request, "webhooks:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
@@ -43,6 +47,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth(request, "webhooks:update");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const { id } = await params;
     const body = await request.json();

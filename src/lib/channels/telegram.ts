@@ -24,10 +24,9 @@ interface TelegramUpdate {
 
 async function getTelegramToken(): Promise<string> {
   const settings = await prisma.settings.findFirst({
-    select: { whatsappApiKey: true },
+    select: { telegramBotToken: true },
   });
-  // Reusing whatsappApiKey field for Telegram bot token (or add dedicated field)
-  return settings?.whatsappApiKey || "";
+  return settings?.telegramBotToken || "";
 }
 
 /**

@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import OpenAI from "openai";
 import { logger } from "@/lib/logger";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request, "knowledge:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const body = await request.json();
     const { question } = body;

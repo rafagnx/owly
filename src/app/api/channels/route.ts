@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
-const CHANNEL_TYPES = ["whatsapp", "email", "phone"];
+const CHANNEL_TYPES = ["whatsapp", "email", "phone", "sms", "telegram"];
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request, "channels:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const channels = await prisma.channel.findMany({
       orderBy: { type: "asc" },
@@ -36,6 +40,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request, "channels:update");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const body = await request.json();
     const { type, isActive, config } = body;

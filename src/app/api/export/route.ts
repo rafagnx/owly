@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
 const MAX_EXPORT_LIMIT = 50000;
 const DEFAULT_EXPORT_LIMIT = 10000;
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request, "export:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const format = request.nextUrl.searchParams.get("format") || "json";
     const type = request.nextUrl.searchParams.get("type") || "conversations";

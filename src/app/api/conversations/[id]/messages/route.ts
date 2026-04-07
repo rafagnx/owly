@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
+import { emitNewMessage } from "@/lib/realtime";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth(request, "messages:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const { id } = await params;
 
@@ -39,6 +44,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth(request, "messages:create");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -77,6 +85,8 @@ export async function POST(
       where: { id },
       data: { updatedAt: new Date() },
     });
+
+    emitNewMessage(id, { id: message.id, role: messageRole, content: content.trim() });
 
     return NextResponse.json(message, { status: 201 });
   } catch (error) {

@@ -22,7 +22,7 @@ export const setupSchema = z.object({
 
 // Conversations
 export const createConversationSchema = z.object({
-  channel: z.enum(["whatsapp", "email", "phone", "api", "widget"]),
+  channel: z.enum(["whatsapp", "email", "phone", "sms", "telegram", "api", "widget"]),
   customerName: z.string().max(200).optional(),
   customerContact: z.string().max(500).optional(),
   status: z.enum(["active", "resolved", "closed", "escalated"]).optional(),

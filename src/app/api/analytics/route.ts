@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
 function getPeriodStart(period: string): Date {
   const now = new Date();
@@ -19,6 +20,9 @@ function formatDateKey(date: Date): string {
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request, "analytics:read");
+  if (!isAuthenticated(auth)) return auth;
+
   const { searchParams } = new URL(request.url);
   const period = searchParams.get("period") || "7d";
   const periodStart = getPeriodStart(period);

@@ -82,8 +82,12 @@ export function middleware(request: NextRequest) {
   const publicPaths = ["/login", "/setup", "/api/auth", "/api/health", "/api/openapi.json"];
   const isPublic = publicPaths.some((p) => pathname.startsWith(p));
 
-  // Twilio webhook endpoints (authenticated via Twilio signature)
-  if (pathname.startsWith("/api/channels/phone/")) {
+  // Channel webhook endpoints (authenticated via provider signatures, not JWT)
+  if (
+    pathname.startsWith("/api/channels/phone/") ||
+    pathname.startsWith("/api/channels/sms") ||
+    pathname.startsWith("/api/channels/telegram")
+  ) {
     return addHeaders(NextResponse.next(), requestId);
   }
 

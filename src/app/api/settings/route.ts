@@ -1,10 +1,14 @@
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
 import { maskSettingsSecrets } from "@/lib/security";
 import { updateSettingsSchema, validateBody } from "@/lib/validations";
 import { logger } from "@/lib/logger";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request, "settings:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     let settings = await prisma.settings.findUnique({
       where: { id: "default" },
@@ -26,7 +30,10 @@ export async function GET() {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
+  const auth = await requireAuth(request, "settings:update");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const body = await request.json();
 

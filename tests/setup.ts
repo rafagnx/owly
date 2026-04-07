@@ -10,6 +10,27 @@ vi.mock("@/lib/prisma", () => ({
   prisma: createMockPrismaClient(),
 }));
 
+// Mock route-auth to always authenticate as admin in tests
+vi.mock("@/lib/route-auth", () => ({
+  requireAuth: vi.fn().mockResolvedValue({
+    userId: "test-admin-id",
+    role: "admin",
+    username: "admin",
+    name: "Test Admin",
+    authMethod: "cookie",
+  }),
+  isAuthenticated: vi.fn().mockReturnValue(true),
+}));
+
+// Mock realtime to prevent side effects in tests
+vi.mock("@/lib/realtime", () => ({
+  emitNewMessage: vi.fn(),
+  emitConversationUpdate: vi.fn(),
+  emitTyping: vi.fn(),
+  publish: vi.fn(),
+  subscribe: vi.fn(),
+}));
+
 // Mock next/headers
 vi.mock("next/headers", () => ({
   cookies: vi.fn().mockResolvedValue({
@@ -62,6 +83,8 @@ function createMockPrismaClient() {
     "businessHours",
     "apiKey",
     "internalNote",
+    "campaign",
+    "flow",
   ];
 
   const client: Record<string, unknown> = {

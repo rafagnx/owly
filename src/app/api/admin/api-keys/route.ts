@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { logger } from "@/lib/logger";
 import { parsePagination, paginatedResponse } from "@/lib/pagination";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
 function maskKey(key: string): string {
   if (key.length <= 8) return key;
@@ -14,6 +15,9 @@ function generateApiKey(): string {
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request, "admin:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const { page, limit, skip, take } = parsePagination(searchParams);
@@ -43,6 +47,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request, "admin:create");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const body = await request.json();
     const { name } = body;

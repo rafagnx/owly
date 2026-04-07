@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
-const CHANNEL_TYPES = ["whatsapp", "email", "phone"];
+const CHANNEL_TYPES = ["whatsapp", "email", "phone", "sms", "telegram"];
 
 type RouteContext = { params: Promise<{ type: string }> };
 
 export async function GET(request: NextRequest, context: RouteContext) {
+  const auth = await requireAuth(request, "channels:read");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const { type } = await context.params;
 
@@ -44,6 +48,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 export async function PUT(request: NextRequest, context: RouteContext) {
+  const auth = await requireAuth(request, "channels:update");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const { type } = await context.params;
 
@@ -83,6 +90,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 }
 
 export async function POST(request: NextRequest, context: RouteContext) {
+  const auth = await requireAuth(request, "channels:update");
+  if (!isAuthenticated(auth)) return auth;
+
   try {
     const { type } = await context.params;
 

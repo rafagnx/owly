@@ -1,7 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isAuthenticated } from "@/lib/route-auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request, "analytics:read");
+  if (!isAuthenticated(auth)) return auth;
+
   const [
     totalConversations,
     activeConversations,
