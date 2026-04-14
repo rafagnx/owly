@@ -14,6 +14,8 @@ function buildSystemPrompt(context: ConversationContext): string {
   const toneGuide: Record<string, string> = {
     friendly:
       "Be warm, approachable, and conversational. Use a casual but professional tone.",
+    professional:
+      "Be polished and business-like. Maintain a confident, competent tone while remaining personable.",
     formal:
       "Be professional, polished, and courteous. Use formal language and proper grammar.",
     technical:

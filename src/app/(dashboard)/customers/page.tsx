@@ -727,7 +727,7 @@ export default function CustomersPage() {
               </div>
             </div>
 
-            {detailLoading && !selectedCustomer.notes ? (
+            {detailLoading && !selectedCustomer?.notes ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-sm text-owly-text-light">Loading...</div>
               </div>

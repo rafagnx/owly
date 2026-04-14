@@ -18,7 +18,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -159,7 +159,51 @@ function WhatsAppCard({
   );
   const [apiKey, setApiKey] = useState(cfg.apiKey || "");
   const [phoneNumber, setPhoneNumber] = useState(cfg.phoneNumber || "");
+  const [qrCode, setQrCode] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isConnected = channel.status === "connected";
+
+  // Poll WhatsApp status while connecting to get QR code updates
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    setQrCode(null);
+    try {
+      const res = await fetch("/api/channels/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "connect" }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.qr) setQrCode(data.qr);
+      }
+      // Start polling for QR code / status updates
+      if (pollRef.current) clearInterval(pollRef.current);
+      pollRef.current = setInterval(async () => {
+        try {
+          const statusRes = await fetch("/api/channels/whatsapp");
+          if (statusRes.ok) {
+            const status = await statusRes.json();
+            if (status.qr) setQrCode(status.qr);
+            if (status.status === "connected") {
+              if (pollRef.current) clearInterval(pollRef.current);
+              setConnecting(false);
+              onAction("whatsapp", "connect");
+            }
+          }
+        } catch { /* ignore polling errors */ }
+      }, 3000);
+    } catch {
+      setConnecting(false);
+    }
+  };
 
   return (
     <div className="bg-owly-surface rounded-xl border border-owly-border overflow-hidden">
@@ -247,24 +291,41 @@ function WhatsAppCard({
               </div>
             ) : (
               <div className="rounded-lg border border-owly-border bg-owly-bg p-6 flex flex-col items-center">
-                <div className="w-40 h-40 bg-white border-2 border-dashed border-owly-border rounded-lg flex items-center justify-center mb-3">
-                  <div className="text-center">
-                    <QrCode className="h-10 w-10 text-owly-text-light/40 mx-auto mb-1" />
-                    <p className="text-xs text-owly-text-light/60">
-                      QR Code
-                    </p>
-                  </div>
+                <div className="w-48 h-48 bg-white border-2 border-dashed border-owly-border rounded-lg flex items-center justify-center mb-3 overflow-hidden">
+                  {qrCode ? (
+                    <img
+                      src={qrCode}
+                      alt="WhatsApp QR Code"
+                      className="w-full h-full object-contain"
+                    />
+                  ) : connecting ? (
+                    <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+                  ) : (
+                    <div className="text-center">
+                      <QrCode className="h-10 w-10 text-owly-text-light/40 mx-auto mb-1" />
+                      <p className="text-xs text-owly-text-light/60">
+                        QR Code
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-owly-text-light text-center max-w-[220px]">
-                  Scan this QR code with WhatsApp on your phone to connect
+                  {qrCode
+                    ? "Scan this QR code with WhatsApp on your phone to connect"
+                    : "Click Connect to generate a QR code"}
                 </p>
                 <button
                   type="button"
-                  onClick={() => onAction("whatsapp", "connect")}
-                  className="mt-3 flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                  onClick={handleConnect}
+                  disabled={connecting}
+                  className="mt-3 flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                 >
-                  <Wifi className="h-4 w-4" />
-                  Connect
+                  {connecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wifi className="h-4 w-4" />
+                  )}
+                  {connecting ? "Connecting..." : "Connect"}
                 </button>
               </div>
             )}
@@ -702,6 +763,7 @@ function PhoneCard({
 export default function ChannelsPage() {
   const [channels, setChannels] = useState<ChannelData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
@@ -718,11 +780,13 @@ export default function ChannelsPage() {
 
   const fetchChannels = useCallback(async () => {
     try {
+      setFetchError(null);
       const res = await fetch("/api/channels");
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
       setChannels(data);
     } catch {
+      setFetchError("Failed to load channels. Please try refreshing the page.");
       showToast("Failed to load channels", "error");
     } finally {
       setLoading(false);
@@ -804,6 +868,17 @@ export default function ChannelsPage() {
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-owly-primary" />
+          </div>
+        ) : fetchError ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="font-medium text-owly-text">Could not load channels</p>
+            <p className="text-sm text-owly-text-light mt-1">{fetchError}</p>
+            <button
+              onClick={() => { setLoading(true); fetchChannels(); }}
+              className="mt-3 px-4 py-2 text-sm font-medium text-white bg-owly-primary rounded-lg hover:bg-owly-primary/90 transition-colors"
+            >
+              Retry
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl">

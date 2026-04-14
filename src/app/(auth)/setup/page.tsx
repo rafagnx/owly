@@ -13,9 +13,9 @@ const STEPS = [
 
 const TONE_OPTIONS = [
   { value: "friendly", label: "Friendly", desc: "Warm and approachable" },
-  { value: "professional", label: "Professional", desc: "Formal and business-like" },
-  { value: "casual", label: "Casual", desc: "Relaxed and conversational" },
-  { value: "concise", label: "Concise", desc: "Short and to the point" },
+  { value: "professional", label: "Professional", desc: "Polished and business-like" },
+  { value: "formal", label: "Formal", desc: "Courteous and proper" },
+  { value: "technical", label: "Technical", desc: "Precise and detailed" },
 ];
 
 const PROVIDER_OPTIONS = [

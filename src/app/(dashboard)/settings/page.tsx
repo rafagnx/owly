@@ -392,6 +392,7 @@ function GeneralSection({
           onChange={(v) => update("tone", v)}
           options={[
             { value: "friendly", label: "Friendly" },
+            { value: "professional", label: "Professional" },
             { value: "formal", label: "Formal" },
             { value: "technical", label: "Technical" },
           ]}

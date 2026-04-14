@@ -86,6 +86,7 @@ export default function ConversationsPage() {
   const [selectedConversation, setSelectedConversation] =
     useState<ConversationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [channelFilter, setChannelFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -97,18 +98,19 @@ export default function ConversationsPage() {
 
   const fetchConversations = useCallback(async () => {
     try {
+      setFetchError(null);
       const params = new URLSearchParams();
       if (channelFilter !== "all") params.set("channel", channelFilter);
       if (statusFilter !== "all") params.set("status", statusFilter);
       if (searchQuery.trim()) params.set("search", searchQuery.trim());
 
       const res = await fetch(`/api/conversations?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setConversations(data);
-      }
+      if (!res.ok) throw new Error("Failed to load conversations");
+      const data = await res.json();
+      setConversations(data);
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
+      setFetchError("Failed to load conversations. Please try refreshing the page.");
     } finally {
       setLoading(false);
     }
@@ -251,6 +253,24 @@ export default function ConversationsPage() {
             {loading ? (
               <div className="flex items-center justify-center h-40">
                 <div className="text-sm text-owly-text-light">Loading...</div>
+              </div>
+            ) : fetchError ? (
+              <div className="flex flex-col items-center justify-center h-64 px-6 text-center">
+                <div className="p-4 rounded-full bg-red-50 mb-4">
+                  <Inbox className="h-8 w-8 text-red-400" />
+                </div>
+                <p className="font-medium text-owly-text">
+                  Could not load conversations
+                </p>
+                <p className="text-sm text-owly-text-light mt-1">
+                  {fetchError}
+                </p>
+                <button
+                  onClick={() => { setLoading(true); fetchConversations(); }}
+                  className="mt-3 px-4 py-2 text-sm font-medium text-white bg-owly-primary rounded-lg hover:bg-owly-primary/90 transition-colors"
+                >
+                  Retry
+                </button>
               </div>
             ) : conversations.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 px-6 text-center">
