@@ -163,9 +163,9 @@ export default function CustomersPage() {
 
         const res = await fetch(`/api/customers?${params.toString()}`);
         if (res.ok) {
-          const data = await res.json();
-          setCustomers(data.customers);
-          setPagination(data.pagination);
+          const { data, pagination: meta } = await res.json();
+          setCustomers(data || []);
+          setPagination(meta);
         }
       } catch (error) {
         console.error("Failed to fetch customers:", error);

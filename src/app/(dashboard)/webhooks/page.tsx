@@ -428,8 +428,8 @@ export default function WebhooksPage() {
   const fetchWebhooks = useCallback(async () => {
     try {
       const res = await fetch("/api/webhooks");
-      const data = await res.json();
-      setWebhooks(data);
+      const { data } = await res.json();
+      setWebhooks(data || []);
     } catch {
       // silently fail
     } finally {
