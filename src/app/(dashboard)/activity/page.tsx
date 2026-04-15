@@ -26,12 +26,16 @@ interface ActivityData {
   createdAt: string;
 }
 
-interface ActivityResponse {
-  activities: ActivityData[];
-  total: number;
+interface PaginationMeta {
   page: number;
   limit: number;
+  total: number;
   totalPages: number;
+}
+
+interface ActivityResponse {
+  data: ActivityData[];
+  pagination: PaginationMeta;
 }
 
 const entityTypes = [
@@ -108,9 +112,9 @@ export default function ActivityPage() {
     setPage(1);
   }, [entityFilter]);
 
-  const activities = data?.activities || [];
-  const totalPages = data?.totalPages || 1;
-  const total = data?.total || 0;
+  const activities = data?.data || [];
+  const totalPages = data?.pagination?.totalPages || 1;
+  const total = data?.pagination?.total || 0;
 
   return (
     <>
@@ -159,7 +163,7 @@ export default function ActivityPage() {
             </div>
           ) : (
             <div className="divide-y divide-owly-border">
-              {activities.map((activity) => {
+              {activities.map((activity: ActivityData) => {
                 const config = entityConfig[activity.entity] || {
                   icon: ScrollText,
                   bgColor: "bg-gray-100",

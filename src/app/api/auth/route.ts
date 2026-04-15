@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
@@ -64,7 +65,8 @@ export async function POST(request: NextRequest) {
       success: true,
       user: { id: admin.id, username: admin.username, name: admin.name },
     });
-    response.cookies.set(cookie);
+    // @ts-ignore
+    response.cookies.set(cookie.name, cookie.value, cookie);
     return response;
   }
 
@@ -76,37 +78,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const admin = await prisma.admin.findUnique({ where: { username } });
-    if (!admin) {
+    try {
+      const admin = await prisma.admin.findUnique({ where: { username } });
+      if (!admin) {
+        return NextResponse.json(
+          { error: "Invalid credentials" },
+          { status: 401 }
+        );
+      }
+
+      const valid = await verifyPassword(password, admin.password);
+      if (!valid) {
+        return NextResponse.json(
+          { error: "Invalid credentials" },
+          { status: 401 }
+        );
+      }
+
+      const token = generateToken(admin.id, admin.role);
+      const cookie = setAuthCookie(token);
+
+      const response = NextResponse.json({
+        success: true,
+        user: { id: admin.id, username: admin.username, name: admin.name },
+      });
+      // Explicitly force secure: false regardless of setAuthCookie return
+      // @ts-ignore
+      response.cookies.set(cookie.name, cookie.value, { ...cookie, secure: false });
+      return response;
+    } catch (error: any) {
+      console.error("LOGIN ERROR:", error.message);
       return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
+        { error: "Internal server error" },
+        { status: 500 }
       );
     }
-
-    const valid = await verifyPassword(password, admin.password);
-    if (!valid) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
-    }
-
-    const token = generateToken(admin.id, admin.role);
-    const cookie = setAuthCookie(token);
-
-    const response = NextResponse.json({
-      success: true,
-      user: { id: admin.id, username: admin.username, name: admin.name },
-    });
-    response.cookies.set(cookie);
-    return response;
   }
 
   if (action === "logout") {
     const cookie = clearAuthCookie();
     const response = NextResponse.json({ success: true });
-    response.cookies.set(cookie);
+    // @ts-ignore
+    response.cookies.set(cookie.name, cookie.value, cookie);
     return response;
   }
 

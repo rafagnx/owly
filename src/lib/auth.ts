@@ -68,7 +68,7 @@ export function setAuthCookie(token: string) {
     name: TOKEN_NAME,
     value: token,
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false, // Changed to false to allow login via HTTP on VPS IP
     sameSite: "lax" as const,
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: "/",

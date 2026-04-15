@@ -53,8 +53,8 @@ export default function CannedResponsesPage() {
 
       const res = await fetch(`/api/canned-responses?${params.toString()}`);
       if (res.ok) {
-        const data = await res.json();
-        setResponses(data);
+        const result = await res.json();
+        setResponses(result.data || []);
       }
     } catch (error) {
       console.error("Failed to fetch canned responses:", error);
