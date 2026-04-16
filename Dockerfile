@@ -8,6 +8,9 @@ RUN npm ci
 
 COPY . .
 
+# Dummy DATABASE_URL for build-time Prisma generate (real URL injected at runtime)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
+
 RUN npx prisma generate
 RUN npm run build
 
