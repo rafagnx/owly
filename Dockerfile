@@ -8,8 +8,10 @@ RUN npm ci
 
 COPY . .
 
-# Dummy DATABASE_URL for build-time Prisma generate (real URL injected at runtime)
+# Dummy environment variables for build-time Next.js static generation (real values injected at runtime)
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
+ENV JWT_SECRET="dummy-secret-for-build"
+ENV NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 RUN npx prisma generate
 RUN npm run build
