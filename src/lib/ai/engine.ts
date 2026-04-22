@@ -216,7 +216,26 @@ async function callAI(
     return "I apologize, but I'm having trouble processing your request. Let me connect you with a team member.";
   }
 
-  const openai = new OpenAI({ apiKey: config.apiKey });
+  let baseURL: string | undefined = undefined;
+  let defaultHeaders: Record<string, string> = {};
+
+  if (config.provider === "ollama") {
+    baseURL = "http://localhost:11434/v1";
+  } else if (config.provider === "gemini") {
+    baseURL = "https://generativelanguage.googleapis.com/v1beta/openai/";
+  } else if (config.provider === "openrouter") {
+    baseURL = "https://openrouter.ai/api/v1";
+    defaultHeaders = {
+      "HTTP-Referer": "https://owly.ai",
+      "X-Title": "Owly AI Support",
+    };
+  }
+
+  const openai = new OpenAI({ 
+    apiKey: config.apiKey,
+    baseURL,
+    defaultHeaders,
+  });
 
   let response;
   try {
@@ -227,7 +246,8 @@ async function callAI(
       max_tokens: config.maxTokens,
       temperature: config.temperature,
     });
-  } catch {
+  } catch (error) {
+    console.error("AI Provider Error:", error);
     return "I'm temporarily unable to process your request. Please try again in a moment, or I can connect you with a team member.";
   }
 

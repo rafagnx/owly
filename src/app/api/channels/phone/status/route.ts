@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { handleCallEnd } from "@/lib/channels/phone";
 import { validateTwilioSignature, getTwilioAuthToken } from "@/lib/twilio-verify";

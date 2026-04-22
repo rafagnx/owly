@@ -30,12 +30,15 @@ export async function initWhatsApp(): Promise<void> {
   const client = new Client({
     authStrategy: new LocalAuth({ dataPath: ".wwebjs_auth" }),
     puppeteer: {
+      executablePath: "/usr/bin/chromium",
       headless: true,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
+        "--disable-extensions",
+        "--remote-debugging-port=9222",
       ],
     },
   });

@@ -1,7 +1,8 @@
+export const dynamic = "force-dynamic";
 import { NextRequest } from "next/server";
 import { subscribe } from "@/lib/realtime";
 
-export const dynamic = "force-dynamic";
+
 
 export async function GET(request: NextRequest) {
   const channel = request.nextUrl.searchParams.get("channel") || "global";

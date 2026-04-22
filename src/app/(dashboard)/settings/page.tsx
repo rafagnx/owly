@@ -16,7 +16,9 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -149,11 +151,11 @@ function FormField({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-medium text-owly-text">
+      <label className="block text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">
         {label}
       </label>
       {description && (
-        <p className="text-xs text-owly-text-light">{description}</p>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500 font-medium pl-1">{description}</p>
       )}
       {children}
     </div>
@@ -161,7 +163,7 @@ function FormField({
 }
 
 const inputClasses =
-  "w-full px-3 py-2 text-sm border border-owly-border rounded-lg bg-owly-bg text-owly-text placeholder:text-owly-text-light/60 focus:outline-none focus:ring-2 focus:ring-owly-primary/30 focus:border-owly-primary transition-colors";
+  "w-full px-5 py-4 text-sm border-2 border-zinc-300 dark:border-zinc-700 rounded-2xl bg-white dark:bg-zinc-950 text-black dark:text-white placeholder:text-zinc-500 focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all font-bold";
 
 function TextInput({
   value,
@@ -443,6 +445,17 @@ function AISection({
       { value: "mistral", label: "Mistral" },
       { value: "codellama", label: "Code Llama" },
     ],
+    gemini: [
+      { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },
+      { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro" },
+      { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+    ],
+    openrouter: [
+      { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (OR)" },
+      { value: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4 (OR)" },
+      { value: "deepseek/deepseek-chat-v3", label: "DeepSeek V3 (OR)" },
+      { value: "meta-llama/llama-4-maverick", label: "Llama 4 Maverick (OR)" },
+    ],
   };
 
   return (
@@ -460,6 +473,8 @@ function AISection({
           options={[
             { value: "openai", label: "OpenAI" },
             { value: "claude", label: "Claude (Anthropic)" },
+            { value: "gemini", label: "Google Gemini" },
+            { value: "openrouter", label: "OpenRouter" },
             { value: "ollama", label: "Ollama (Local)" },
           ]}
         />
@@ -781,7 +796,7 @@ export default function SettingsPage() {
     fetch("/api/settings")
       .then((r) => r.json())
       .then((settings) => {
-        const merged = { ...defaultSettings };
+        let merged = { ...defaultSettings };
         for (const key of Object.keys(merged) as (keyof SettingsData)[]) {
           if (settings[key] !== undefined && settings[key] !== null) {
             (merged as Record<string, unknown>)[key] = settings[key];
@@ -797,6 +812,7 @@ export default function SettingsPage() {
     setData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const router = useRouter();
   const saveSection = async () => {
     setSaving(true);
     try {
@@ -813,9 +829,14 @@ export default function SettingsPage() {
       });
 
       if (!res.ok) throw new Error("Save failed");
-      addToast("success", "Settings saved successfully");
+      addToast("success", "Configurações salvas! Redirecionando...");
+      
+      // Auto redirect to dashboard after saving identity
+      if (activeTab === "general") {
+        setTimeout(() => router.push("/"), 1000);
+      }
     } catch {
-      addToast("error", "Failed to save settings. Please try again.");
+      addToast("error", "Erro ao salvar. Tente novamente.");
     } finally {
       setSaving(false);
     }
@@ -834,8 +855,8 @@ export default function SettingsPage() {
     return (
       <>
         <Header title="Settings" description="Configure your Owly instance" />
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-owly-primary" />
+        <div className="flex-1 flex items-center justify-center bg-zinc-50 dark:bg-background">
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-900 dark:text-white" />
         </div>
       </>
     );
@@ -844,10 +865,15 @@ export default function SettingsPage() {
   return (
     <>
       <Header title="Settings" description="Configure your Owly instance" />
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Tab navigation */}
-          <div className="flex gap-1 p-1 bg-owly-bg rounded-xl border border-owly-border mb-6 overflow-x-auto">
+      <div className="flex-1 overflow-auto p-4 md:p-8 lg:p-12 bg-zinc-50 dark:bg-background transition-colors duration-300 relative z-0">
+        
+        {/* Subtle Ambient Background */}
+        <div className="absolute top-[10%] right-[10%] w-[30vw] h-[30vw] rounded-full bg-slate-300/20 dark:bg-zinc-800/20 blur-[100px] pointer-events-none -z-10" />
+
+        <div className="max-w-5xl mx-auto relative z-10 w-full flex flex-col xl:flex-row gap-8 items-start">
+          
+          {/* Tab navigation sidebar (desktop) / top bar (mobile) */}
+          <div className="flex xl:flex-col gap-2 p-2 bg-white/70 dark:bg-zinc-900/50 backdrop-blur-2xl rounded-3xl border border-zinc-200/50 dark:border-zinc-800/50 overflow-x-auto w-full xl:w-64 shrink-0 shadow-sm sticky top-4">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.key;
@@ -856,27 +882,30 @@ export default function SettingsPage() {
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
+                    "flex items-center gap-3 px-5 py-4 w-full rounded-2xl text-sm font-semibold transition-all whitespace-nowrap",
                     isActive
-                      ? "bg-owly-surface text-owly-primary shadow-sm"
-                      : "text-owly-text-light hover:text-owly-text hover:bg-owly-surface/50"
+                      ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-md shadow-zinc-900/10 hover:-translate-y-[1px]"
+                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className={cn("h-4 w-4", isActive ? "text-white dark:text-black" : "text-zinc-400 dark:text-zinc-500")} />
                   {tab.label}
                 </button>
               );
             })}
           </div>
 
-          {/* Section content */}
-          <div className="bg-owly-surface rounded-xl border border-owly-border p-6 space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-owly-text">
-                {tabs.find((t) => t.key === activeTab)?.label}
-              </h3>
-              <p className="text-sm text-owly-text-light mt-0.5">
-                {activeTab === "general" &&
+          {/* Section content - Liquid Glass Bento Card */}
+          <div className="flex-1 w-full bg-white border border-zinc-200 dark:border-zinc-800/50 dark:bg-zinc-950 rounded-[2.5rem] p-8 md:p-10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] dark:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5)] relative overflow-hidden">
+            <div className="absolute inset-0 rounded-[2.5rem] shadow-[inset_0_1px_0_rgba(255,255,255,0.5)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] pointer-events-none" />
+            
+            <div className="space-y-8 relative z-10">
+              <div className="pb-6 border-b border-zinc-100 dark:border-zinc-800/50">
+                <h3 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">
+                  {tabs.find((t) => t.key === activeTab)?.label}
+                </h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 font-medium">
+                  {activeTab === "general" &&
                   "Configure your business identity and communication preferences."}
                 {activeTab === "ai" &&
                   "Set up the AI model that powers your customer interactions."}
@@ -894,6 +923,7 @@ export default function SettingsPage() {
             {sectionRenderers[activeTab]}
 
             <SaveButton onClick={saveSection} saving={saving} />
+            </div>
           </div>
         </div>
       </div>

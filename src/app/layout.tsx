@@ -1,21 +1,29 @@
-export const dynamic = "force-dynamic";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { ThemeInit } from "@/components/theme-init";
 import "./globals.css";
 
 const inter = Inter({
-  variable: "--font-geist-sans",
   subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Owly - AI Customer Support",
-  description: "Open-source AI-powered customer support agent",
+  title: "ClinicOS | O Sistema Inteligente para sua Clínica",
+  description: "A plataforma definitiva de atendimento e inteligência artificial para clínicas e negócios modernos.",
+  keywords: ["CRM", "Clínica", "Atendimento", "WhatsApp", "IA", "ClinicOS"],
+  authors: [{ name: "ClinicOS Team" }],
   icons: {
-    icon: "/owly.png",
+    icon: "/favicon.ico",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#09090b",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -24,13 +32,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="h-full">
-          <Providers>
-            <ThemeInit />
+    <html 
+      lang="pt-BR" 
+      className={`${inter.variable} min-h-[100dvh] antialiased selection:bg-primary/30`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-[100dvh] bg-background text-foreground font-sans overflow-x-hidden">
+        <Providers>
+          <ThemeInit />
+          <div className="relative flex min-h-[100dvh] flex-col">
             {children}
-          </Providers>
-        </body>
+          </div>
+        </Providers>
+      </body>
     </html>
   );
 }

@@ -1,0 +1,223 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+  engineType    = "library"
+  output        = "../src/generated/master"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== SUPER ADMIN ====================
+
+model SuperAdmin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  name      String   @default("Super Admin")
+  email     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== TENANTS ====================
+
+model Tenant {
+  id           String  @id @default(uuid())
+  slug         String  @unique // subdomain: slug.owly.com
+  name         String // Company name
+  customDomain String? @unique // Optional: support.company.com
+  status       String  @default("active") // active, suspended, trial, cancelled
+
+  // White-label branding
+  logo           String @default("")
+  favicon        String @default("")
+  primaryColor   String @default("#6366f1")
+  secondaryColor String @default("#8b5cf6")
+  accentColor    String @default("#06b6d4")
+
+  // Contact info
+  ownerName  String @default("")
+  ownerEmail String @default("")
+  ownerPhone String @default("")
+
+  // Tenant admin credentials (first admin created during provisioning)
+  adminUsername String @default("admin")
+  adminPassword String @default("") // hashed
+
+  // Limits from plan
+  planId       String?
+  plan         Plan?         @relation(fields: [planId], references: [id])
+  subscription Subscription?
+
+  // Database schema name
+  dbSchema String @unique // e.g., tenant_abc123
+
+  // S3 Storage
+  s3Bucket        String @default("")
+  s3Region        String @default("us-east-1")
+  s3AccessKey     String @default("")
+  s3SecretKey     String @default("")
+  s3RetentionDays Int    @default(90) // auto-delete after X days
+
+  // SMTP (overrides global if set)
+  smtpHost      String  @default("")
+  smtpPort      Int     @default(587)
+  smtpUser      String  @default("")
+  smtpPass      String  @default("")
+  smtpFrom      String  @default("")
+  useGlobalSmtp Boolean @default(true) // use superadmin SMTP
+
+  // Trial
+  trialEndsAt DateTime?
+
+  // Metadata
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([slug])
+}
+
+// ==================== PLANS ====================
+
+model Plan {
+  id          String @id @default(uuid())
+  name        String // "Starter", "Business", "Enterprise", "Reseller"
+  slug        String @unique
+  description String @default("")
+
+  // Pricing
+  priceMonthly Float  @default(0) // BRL
+  priceYearly  Float  @default(0)
+  currency     String @default("BRL")
+
+  // Limits
+  maxUsers         Int @default(5) // max atendentes
+  maxChannels      Int @default(3) // max canais conectados
+  maxContacts      Int @default(1000) // max contatos
+  maxMessagesMonth Int @default(10000) // max mensagens/mês
+  maxCampaigns     Int @default(5)
+  maxFlows         Int @default(10)
+  maxAiAgents      Int @default(1)
+
+  // Features
+  hasWhatsappQr  Boolean @default(true)
+  hasWhatsappApi Boolean @default(false) // WABA
+  hasInstagram   Boolean @default(false)
+  hasMessenger   Boolean @default(false)
+  hasTelegram    Boolean @default(false)
+  hasEmail       Boolean @default(true)
+  hasPhone       Boolean @default(false)
+  hasChatbot     Boolean @default(true)
+  hasAiAgents    Boolean @default(false)
+  hasCampaigns   Boolean @default(false)
+  hasApi         Boolean @default(false)
+  hasWebhooks    Boolean @default(false)
+  hasWhiteLabel  Boolean @default(false)
+
+  isActive      Boolean        @default(true)
+  sortOrder     Int            @default(0)
+  tenants       Tenant[]
+  subscriptions Subscription[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+// ==================== SUBSCRIPTIONS ====================
+
+model Subscription {
+  id       String @id @default(uuid())
+  tenantId String @unique
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  planId   String
+  plan     Plan   @relation(fields: [planId], references: [id])
+
+  status       String @default("active") // active, past_due, cancelled, trialing
+  billingCycle String @default("monthly") // monthly, yearly
+
+  // Gateway
+  gatewayProvider       String @default("") // asaas, stripe
+  gatewayCustomerId     String @default("") // customer ID in gateway
+  gatewaySubscriptionId String @default("") // subscription ID in gateway
+
+  currentPeriodStart DateTime  @default(now())
+  currentPeriodEnd   DateTime  @default(now())
+  cancelledAt        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ==================== BILLING ====================
+
+model Payment {
+  id              String    @id @default(uuid())
+  tenantId        String
+  amount          Float
+  currency        String    @default("BRL")
+  status          String    @default("pending") // pending, paid, failed, refunded
+  gatewayId       String    @default("") // ID no gateway
+  gatewayProvider String    @default("")
+  description     String    @default("")
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([status])
+}
+
+// ==================== SMART BILLING ====================
+
+model BillingConfig {
+  id             String   @id @default(uuid())
+  tenantId       String   @unique
+  // Smart billing
+  monthlyPrice   Float    @default(99)
+  warningDays    Int      @default(3) // days before due to show warning
+  blockAfterDays Int      @default(7) // days after due to block
+  warningMessage String   @default("Sua mensalidade vence em {{days}} dias. Pague agora para continuar usando.")
+  blockMessage   String   @default("Pagamento overdue. Acesso temporariamente limitado.")
+  paymentLink    String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ==================== LICENSE KEYS ====================
+
+model LicenseKey {
+  id           String    @id @default(uuid())
+  key          String    @unique
+  name         String    @default("")
+  maxInstalls  Int       @default(1)
+  usedInstalls Int       @default(0)
+  isActive     Boolean   @default(true)
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// ==================== GLOBAL SETTINGS ====================
+
+model GlobalSettings {
+  id                   String   @id @default("default")
+  platformName         String   @default("ClinicOS")
+  platformLogo         String   @default("")
+  platformDomain       String   @default("") // base domain: clinicos.com.br
+  smtpHost             String   @default("")
+  smtpPort             Int      @default(587)
+  smtpUser             String   @default("")
+  smtpPass             String   @default("")
+  smtpFrom             String   @default("")
+  billingGateway       String   @default("") // asaas, stripe
+  billingApiKey        String   @default("")
+  billingWebhookSecret String   @default("")
+  maintenanceMode      Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}

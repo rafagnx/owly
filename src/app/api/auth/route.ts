@@ -1,146 +1,77 @@
 export const dynamic = "force-dynamic";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import {
-  hashPassword,
-  verifyPassword,
-  generateToken,
-  setAuthCookie,
-  clearAuthCookie,
-  getCurrentUser,
-  isSetupComplete,
-} from "@/lib/auth";
+import { verifyPassword, generateToken, setAuthCookie, isSetupComplete, hashPassword } from "@/lib/auth";
 
-// POST /api/auth - Login or Setup
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { action, username, password, name } = body;
+  try {
+    const text = await request.text();
+    const body = JSON.parse(text);
+    const { action, username, password } = body;
 
-  if (action === "setup") {
-    const setupDone = await isSetupComplete();
-    if (setupDone) {
-      return NextResponse.json(
-        { error: "Setup already completed" },
-        { status: 400 }
-      );
-    }
-
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: "Username and password are required" },
-        { status: 400 }
-      );
-    }
-
-    const hashed = await hashPassword(password);
-    const admin = await prisma.admin.create({
-      data: {
-        username,
-        password: hashed,
-        name: name || "Admin",
-        role: "admin",
-      },
-    });
-
-    // Ensure default settings exist
-    await prisma.settings.upsert({
-      where: { id: "default" },
-      update: {},
-      create: { id: "default" },
-    });
-
-    // Ensure channels exist
-    for (const type of ["whatsapp", "email", "phone"]) {
-      await prisma.channel.upsert({
-        where: { type },
-        update: {},
-        create: { type, isActive: false, status: "disconnected" },
-      });
-    }
-
-    const token = generateToken(admin.id, admin.role);
-    const cookie = setAuthCookie(token);
-
-    const response = NextResponse.json({
-      success: true,
-      user: { id: admin.id, username: admin.username, name: admin.name },
-    });
-    // @ts-ignore
-    response.cookies.set(cookie.name, cookie.value, cookie);
-    return response;
-  }
-
-  if (action === "login") {
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: "Username and password are required" },
-        { status: 400 }
-      );
-    }
-
-    try {
+    if (action === "login") {
       const admin = await prisma.admin.findUnique({ where: { username } });
-      if (!admin) {
-        return NextResponse.json(
-          { error: "Invalid credentials" },
-          { status: 401 }
-        );
-      }
+      if (!admin) return new Response(JSON.stringify({ error: "Invalid credentials" }), { status: 401 });
 
       const valid = await verifyPassword(password, admin.password);
-      if (!valid) {
-        return NextResponse.json(
-          { error: "Invalid credentials" },
-          { status: 401 }
-        );
-      }
+      if (!valid) return new Response(JSON.stringify({ error: "Invalid credentials" }), { status: 401 });
 
       const token = generateToken(admin.id, admin.role);
       const cookie = setAuthCookie(token);
 
-      const response = NextResponse.json({
-        success: true,
-        user: { id: admin.id, username: admin.username, name: admin.name },
+      return new Response(JSON.stringify({ success: true, user: { id: admin.id, username: admin.username, name: admin.name } }), {
+        status: 200,
+        headers: { 
+            "Content-Type": "application/json",
+            "Set-Cookie": `${cookie.name}=${cookie.value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${cookie.maxAge}`
+        }
       });
-      // Explicitly force secure: false regardless of setAuthCookie return
-      // @ts-ignore
-      response.cookies.set(cookie.name, cookie.value, { ...cookie, secure: false });
-      return response;
-    } catch (error: any) {
-      console.error("LOGIN ERROR:", error.message);
-      return NextResponse.json(
-        { error: "Internal server error" },
-        { status: 500 }
-      );
     }
-  }
+    
+    if (action === "setup") {
+      const setupDone = await isSetupComplete();
+      if (setupDone) {
+        return new Response(JSON.stringify({ error: "Setup already completed" }), { status: 400 });
+      }
 
-  if (action === "logout") {
-    const cookie = clearAuthCookie();
-    const response = NextResponse.json({ success: true });
-    // @ts-ignore
-    response.cookies.set(cookie.name, cookie.value, cookie);
-    return response;
-  }
+      const { name } = body;
+      if (!name || !username || !password) {
+        return new Response(JSON.stringify({ error: "All fields are required" }), { status: 400 });
+      }
 
-  return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+      const hashedPassword = await hashPassword(password);
+      const admin = await prisma.admin.create({
+        data: {
+          name,
+          username,
+          password: hashedPassword,
+          role: "admin"
+        }
+      });
+
+      const token = generateToken(admin.id, admin.role);
+      const cookie = setAuthCookie(token);
+
+      return new Response(JSON.stringify({ success: true, user: { id: admin.id, username: admin.username, name: admin.name } }), {
+        status: 200,
+        headers: { 
+            "Content-Type": "application/json",
+            "Set-Cookie": `${cookie.name}=${cookie.value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${cookie.maxAge}`
+        }
+      });
+    }
+
+    return new Response(JSON.stringify({ error: "Invalid action" }), { status: 400 });
+  } catch (error: any) {
+    console.error("AUTH ERROR:", error.message);
+    return new Response(JSON.stringify({ error: "Internal server error", message: error.message }), { status: 500 });
+  }
 }
 
-// GET /api/auth - Check auth status
 export async function GET() {
   const setupDone = await isSetupComplete();
-  if (!setupDone) {
-    return NextResponse.json({ authenticated: false, setupRequired: true });
-  }
-
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ authenticated: false, setupRequired: false });
-  }
-
-  return NextResponse.json({
-    authenticated: true,
-    setupRequired: false,
-    user,
+  return new Response(JSON.stringify({ authenticated: false, setupRequired: !setupDone }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
   });
 }

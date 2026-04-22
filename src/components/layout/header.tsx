@@ -1,17 +1,20 @@
 "use client";
 
-import { Bell, Search, Sun, Moon, LogOut, User } from "lucide-react";
+import { Bell, Search, Sun, Moon, LogOut, User, Activity } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "@/lib/hooks/use-theme";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface HeaderProps {
   title: string;
   description?: string;
   actions?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-export function Header({ title, description, actions }: HeaderProps) {
+export function Header({ title, description, actions, children }: HeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -38,78 +41,95 @@ export function Header({ title, description, actions }: HeaderProps) {
   };
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-owly-surface border-b border-owly-border transition-theme">
-      <div className="animate-fade-in">
-        <h2 className="text-xl font-semibold text-owly-text">{title}</h2>
-        {description && (
-          <p className="text-sm text-owly-text-light mt-0.5">{description}</p>
-        )}
+    <header className="sticky top-0 z-40 w-full flex items-center justify-between px-8 py-6 bg-background/80 backdrop-blur-xl border-b border-border/50">
+      <div className="flex items-center gap-10">
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-2xl font-black text-foreground tracking-tighter uppercase italic leading-none">{title}</h2>
+            <Badge className="bg-primary/10 text-primary border-none text-[8px] font-black uppercase py-0 px-1.5 h-4 italic tracking-widest hidden sm:flex">
+              v2.0
+            </Badge>
+          </div>
+          {description && (
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1.5 flex items-center gap-2">
+              <Activity className="h-3 w-3 text-primary animate-pulse" />
+              {description}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        {searchOpen && (
+      <div className="flex items-center gap-4">
+        {/* Search Bar */}
+        <div className={cn(
+          "flex items-center bg-secondary/50 border border-transparent hover:border-border transition-all px-3 py-2 rounded-2xl group",
+          searchOpen ? "w-64 border-border ring-2 ring-primary/10" : "w-10 overflow-hidden"
+        )}>
+          <button onClick={() => setSearchOpen(!searchOpen)} className="p-1 text-muted-foreground group-hover:text-foreground transition-colors">
+            <Search className="h-4 w-4" />
+          </button>
           <input
             type="text"
-            placeholder="Search..."
-            className="px-3 py-1.5 text-sm border border-owly-border rounded-lg bg-owly-surface text-owly-text focus:outline-none focus:ring-2 focus:ring-owly-primary/30 focus:border-owly-primary w-64 animate-slide-in-down transition-theme"
-            autoFocus
+            placeholder="Comando rápido..."
+            className="bg-transparent border-none focus:ring-0 text-xs font-medium w-full ml-2 placeholder:text-muted-foreground/50"
             onBlur={() => setSearchOpen(false)}
           />
-        )}
-        <button
-          onClick={() => setSearchOpen(!searchOpen)}
-          className="p-2 text-owly-text-light hover:text-owly-text hover:bg-owly-primary-50 rounded-lg transition-colors"
-          title="Search"
-        >
-          <Search className="h-5 w-5" />
-        </button>
+        </div>
 
-        <button
-          onClick={toggleTheme}
-          className="p-2 text-owly-text-light hover:text-owly-text hover:bg-owly-primary-50 rounded-lg transition-colors"
-          title={theme === "light" ? "Dark mode" : "Light mode"}
-        >
-          {theme === "light" ? (
-            <Moon className="h-5 w-5" />
-          ) : (
-            <Sun className="h-5 w-5" />
-          )}
-        </button>
+        <div className="h-6 w-px bg-border/50 mx-2" />
 
-        <button className="relative p-2 text-owly-text-light hover:text-owly-text hover:bg-owly-primary-50 rounded-lg transition-colors">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-owly-danger rounded-full" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-all"
+            title={theme === "light" ? "Modo Escuro" : "Modo Claro"}
+          >
+            {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          </button>
+
+          <button className="relative p-2.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-all">
+            <Bell className="h-4 w-4" />
+            <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-primary rounded-full animate-ping" />
+          </button>
+        </div>
 
         {actions}
+        {children}
 
-        <div className="relative" ref={menuRef}>
+        <div className="relative ml-2" ref={menuRef}>
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="flex items-center justify-center w-8 h-8 rounded-full bg-owly-primary text-white text-sm font-medium hover:bg-owly-primary-dark transition-colors"
+            className="flex items-center gap-3 p-1.5 pl-3 rounded-2xl bg-secondary/50 hover:bg-secondary transition-all border border-transparent hover:border-border"
           >
-            A
+            <span className="text-[10px] font-black uppercase tracking-widest italic hidden md:block">Admin</span>
+            <div className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-black text-xs shadow-lg shadow-primary/20">
+              A
+            </div>
           </button>
 
           {userMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-owly-surface border border-owly-border rounded-lg shadow-lg py-1 z-50 animate-scale-in transition-theme">
+            <div className="absolute right-0 mt-4 w-56 bg-card border border-border rounded-[1.5rem] shadow-2xl py-3 z-50 animate-in fade-in zoom-in-95 duration-200">
+              <div className="px-4 py-3 border-b border-border/50 mb-3">
+                 <p className="text-xs font-black uppercase tracking-widest text-foreground">Administrador</p>
+                 <p className="text-[10px] font-bold text-muted-foreground">Logado como admin</p>
+              </div>
               <button
                 onClick={() => {
                   setUserMenuOpen(false);
                   router.push("/settings");
                 }}
-                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-owly-text hover:bg-owly-primary-50 transition-colors"
+                className="flex items-center gap-3 w-full px-4 py-3 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
               >
                 <User className="h-4 w-4" />
-                Profile & Settings
+                Configurações
               </button>
-              <div className="border-t border-owly-border my-1" />
+              <div className="mx-4 border-t border-border/50 my-2" />
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-owly-danger hover:bg-red-50 transition-colors"
+                className="flex items-center gap-3 w-full px-4 py-3 text-xs font-black text-destructive hover:bg-destructive/10 transition-all uppercase italic"
               >
                 <LogOut className="h-4 w-4" />
-                Sign Out
+                Desconectar
               </button>
             </div>
           )}

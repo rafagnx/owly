@@ -1,6 +1,5 @@
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
-
 export async function GET() {
-  console.log("PING: Request received!");
-  return NextResponse.json({ message: "pong", timestamp: new Date().toISOString() });
+  return NextResponse.json({ status: "alive", timestamp: new Date().toISOString() });
 }

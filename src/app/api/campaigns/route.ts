@@ -1,5 +1,5 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { parsePagination, paginatedResponse } from "@/lib/pagination";
 import { requireAuth, isAuthenticated } from "@/lib/route-auth";
@@ -25,13 +25,13 @@ export async function GET(request: NextRequest) {
     }
 
     const [campaigns, total] = await Promise.all([
-      prisma.campaign.findMany({
+      auth.tenantPrisma.campaign.findMany({
         where,
         orderBy: { createdAt: "desc" },
         skip,
         take,
       }),
-      prisma.campaign.count({ where }),
+      auth.tenantPrisma.campaign.count({ where }),
     ]);
 
     return NextResponse.json(paginatedResponse(campaigns, total, page, limit));
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const campaign = await prisma.campaign.create({
+    const campaign = await auth.tenantPrisma.campaign.create({
       data: {
         name: name.trim(),
         description: description?.trim() || "",

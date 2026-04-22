@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  binaryTargets   = ["native", "debian-openssl-3.0.x"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
   engineType      = "library"
 }
 
@@ -110,11 +110,11 @@ model TeamMember {
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   isAvailable  Boolean    @default(true)
+  isOnPause    Boolean    @default(false)
+  pauseReason  String
   tickets      Ticket[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
-
-  @@index([departmentId])
 }
 
 // ==================== CONVERSATIONS ====================
@@ -130,10 +130,18 @@ model Conversation {
   satisfaction    Int?
   summary         String            @default("")
   metadata        Json              @default("{}")
+  // Pinned conversations
+  isPinned       Boolean           @default(false)
+  pinnedAt       DateTime?
+  // Funil CRM
+  pipelineStage   String           @default("")
+  pipelineValue  Float            @default(0) // value for Kanban sum
+  assignedToId   String           @default("")
   messages        Message[]
   tickets         Ticket[]
   tags            ConversationTag[]
   notes           InternalNote[]
+  evaluations    Evaluation[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
@@ -143,6 +151,7 @@ model Conversation {
   @@index([channel, status])
   @@index([createdAt])
   @@index([customerId])
+  @@index([isPinned])
 }
 
 model Message {
@@ -277,6 +286,19 @@ model WebhookDelivery {
   @@index([status, nextRetryAt])
 }
 
+// ==================== CHANNEL WEBHOOKS ====================
+
+model ChannelWebhook {
+  id          String   @id @default(uuid())
+  channelType String   // whatsapp, instagram, telegram, email
+  webhookId   String
+  isActive   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([channelType])
+}
+
 // ==================== ACTIVITY LOG ====================
 
 model ActivityLog {
@@ -344,6 +366,8 @@ model Customer {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
+  customerGroups CustomerGroupMember[]
+
   @@index([email])
   @@index([phone])
   @@index([whatsapp])
@@ -359,6 +383,47 @@ model CustomerNote {
   createdAt  DateTime @default(now())
 
   @@index([customerId])
+}
+
+// ==================== CUSTOM FIELDS ====================
+
+model CustomField {
+  id          String   @id @default(uuid())
+  name        String
+  label       String
+  type        String   @default("text") // text, number, date, select, checkbox
+  placeholder String   @default("")
+  options     String   @default("") // comma-separated for select type
+  required    Boolean  @default(false)
+  visibleInCard Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== CUSTOMER GROUPS ====================
+
+model CustomerGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  color       String   @default("#4A7C9B")
+  customers   CustomerGroupMember[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([name])
+}
+
+model CustomerGroupMember {
+  id            String       @id @default(uuid())
+  customerId    String
+  customer      Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  groupId       String
+  group         CustomerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+
+  @@unique([customerId, groupId])
+  @@index([groupId])
 }
 
 // ==================== AUTOMATION RULES ====================
@@ -433,8 +498,36 @@ model Campaign {
   status      String   @default("draft") // draft, scheduled, running, completed, paused
   scheduledAt DateTime?
   sentCount   Int      @default(0)
+  // Campaign improvements
+  startHour   Int      @default(9)  // earliest hour to send
+  endHour     Int      @default(18) // latest hour to send
+  minInterval Int      @default(30) // seconds between sends
+  maxInterval Int      @default(120)
+  // WABA Scheduled Messages
+  useTemplate Boolean  @default(false)
+  templateId  String   @default("")
+  templateVariables Json @default("{}")
+  scheduledFor DateTime? // future scheduled time
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ==================== KANBAN PIPELINE ====================
+
+model PipelineStage {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @default("")
+  color       String   @default("#4A7C9B")
+  order       Int      @default(0)
+  isAutomated Boolean  @default(false)
+  conditions  Json     @default("[]")
+  actions     Json     @default("[]")
+  delayHours  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([order])
 }
 
 // ==================== FLOWS ====================
@@ -449,4 +542,36 @@ model Flow {
   triggerCount Int     @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ==================== CUSTOM ROLES ====================
+
+model CustomRole {
+  id          String   @id @default(uuid())
+  name       String
+  description String   @default("")
+  permissions Json    @default("[]") // array of permission strings
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([name])
+}
+
+// ==================== EVALUATION SYSTEM ====================
+
+model Evaluation {
+  id            String   @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  rating        Int      // 1-5 or custom scale
+  comment      String   @default("")
+  ratingScale  Int      @default(5) // configurable scale, e.g., 5, 10
+  expiresAt    DateTime // expiration deadline
+  isReviewed   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([conversationId])
+  @@index([expiresAt])
 }

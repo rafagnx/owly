@@ -11,6 +11,12 @@ import {
   Inbox,
   ArrowLeft,
   Tag,
+  Clock,
+  Sparkles,
+  MoreHorizontal,
+  Paperclip,
+  Smile,
+  Zap
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -19,6 +25,7 @@ import {
   getChannelLabel,
   getStatusColor,
 } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface MessageData {
   id: string;
@@ -60,25 +67,10 @@ const channelIcons: Record<string, React.ElementType> = {
 };
 
 const channelColors: Record<string, string> = {
-  whatsapp: "text-green-600 bg-green-50",
-  email: "text-blue-600 bg-blue-50",
-  phone: "text-purple-600 bg-purple-50",
+  whatsapp: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
+  email: "text-blue-500 bg-blue-500/10 border-blue-500/20",
+  phone: "text-amber-500 bg-amber-500/10 border-amber-500/20",
 };
-
-const channels = [
-  { value: "all", label: "All Channels" },
-  { value: "whatsapp", label: "WhatsApp" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-];
-
-const statuses = [
-  { value: "all", label: "All Status" },
-  { value: "active", label: "Active" },
-  { value: "resolved", label: "Resolved" },
-  { value: "escalated", label: "Escalated" },
-  { value: "closed", label: "Closed" },
-];
 
 export default function ConversationsPage() {
   const [conversations, setConversations] = useState<ConversationData[]>([]);
@@ -110,7 +102,7 @@ export default function ConversationsPage() {
       setConversations(data || []);
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
-      setFetchError("Failed to load conversations. Please try refreshing the page.");
+      setFetchError("Ops! Não conseguimos carregar as conversas agora.");
     } finally {
       setLoading(false);
     }
@@ -171,23 +163,6 @@ export default function ConversationsPage() {
     }
   };
 
-  const handleStatusChange = async (newStatus: string) => {
-    if (!selectedId) return;
-    try {
-      const res = await fetch(`/api/conversations/${selectedId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      if (res.ok) {
-        fetchConversationDetail(selectedId);
-        fetchConversations();
-      }
-    } catch (error) {
-      console.error("Failed to update status:", error);
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -196,168 +171,105 @@ export default function ConversationsPage() {
   };
 
   return (
-    <>
+    <div className="flex flex-col h-full bg-background overflow-hidden relative">
       <Header
-        title="Conversations"
-        description="Manage all customer interactions"
+        title="Atendimento"
+        description="Central unificada de mensagens"
       />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden p-4 lg:p-6 gap-6 relative z-10">
+        
         {/* Left Panel - Conversation List */}
         <div
           className={cn(
-            "w-full md:w-96 lg:w-[420px] border-r border-owly-border flex flex-col bg-owly-surface",
+            "w-full md:w-80 lg:w-[380px] flex flex-col bg-card rounded-[2.5rem] border border-border shadow-2xl overflow-hidden transition-all",
             mobileShowDetail && "hidden md:flex"
           )}
         >
-          {/* Filters */}
-          <div className="p-3 border-b border-owly-border space-y-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-owly-text-light" />
-              <input
-                type="text"
-                placeholder="Search conversations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-owly-border rounded-lg bg-owly-bg focus:outline-none focus:ring-2 focus:ring-owly-primary/30 focus:border-owly-primary"
-              />
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={channelFilter}
-                onChange={(e) => setChannelFilter(e.target.value)}
-                className="flex-1 text-xs px-2 py-1.5 border border-owly-border rounded-lg bg-owly-bg focus:outline-none focus:ring-2 focus:ring-owly-primary/30 text-owly-text"
-              >
-                {channels.map((ch) => (
-                  <option key={ch.value} value={ch.value}>
-                    {ch.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="flex-1 text-xs px-2 py-1.5 border border-owly-border rounded-lg bg-owly-bg focus:outline-none focus:ring-2 focus:ring-owly-primary/30 text-owly-text"
-              >
-                {statuses.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* List Header */}
+          <div className="p-6 border-b border-border/50">
+             <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-black italic tracking-widest uppercase text-foreground">Inbox</h3>
+                <Badge className="bg-primary/20 text-primary border-none text-[10px] py-0 px-2 tracking-tighter">
+                   {conversations.length} Ativas
+                </Badge>
+             </div>
+             <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Buscar conversa..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 text-xs font-medium border border-border/50 rounded-xl bg-secondary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                />
+             </div>
           </div>
 
-          {/* Conversation List */}
-          <div className="flex-1 overflow-y-auto">
+          {/* List Content */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
             {loading ? (
-              <div className="flex items-center justify-center h-40">
-                <div className="text-sm text-owly-text-light">Loading...</div>
-              </div>
-            ) : fetchError ? (
-              <div className="flex flex-col items-center justify-center h-64 px-6 text-center">
-                <div className="p-4 rounded-full bg-red-50 mb-4">
-                  <Inbox className="h-8 w-8 text-red-400" />
-                </div>
-                <p className="font-medium text-owly-text">
-                  Could not load conversations
-                </p>
-                <p className="text-sm text-owly-text-light mt-1">
-                  {fetchError}
-                </p>
-                <button
-                  onClick={() => { setLoading(true); fetchConversations(); }}
-                  className="mt-3 px-4 py-2 text-sm font-medium text-white bg-owly-primary rounded-lg hover:bg-owly-primary/90 transition-colors"
-                >
-                  Retry
-                </button>
+              <div className="p-6 space-y-4">
+                 {[1,2,3,4].map(i => (
+                   <div key={i} className="flex gap-3 animate-pulse">
+                      <div className="w-12 h-12 rounded-xl bg-secondary" />
+                      <div className="flex-1 space-y-2">
+                         <div className="h-3 w-24 bg-secondary rounded" />
+                         <div className="h-2 w-full bg-secondary rounded" />
+                      </div>
+                   </div>
+                 ))}
               </div>
             ) : conversations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 px-6 text-center">
-                <div className="p-4 rounded-full bg-owly-primary-50 mb-4">
-                  <Inbox className="h-8 w-8 text-owly-primary" />
-                </div>
-                <p className="font-medium text-owly-text">
-                  No conversations found
-                </p>
-                <p className="text-sm text-owly-text-light mt-1">
-                  Conversations will appear here when customers reach out
-                </p>
+              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                 <div className="p-4 rounded-full bg-secondary mb-4">
+                    <Inbox className="h-6 w-6 text-muted-foreground/40" />
+                 </div>
+                 <p className="text-xs font-black uppercase text-muted-foreground tracking-widest italic leading-tight">Nenhuma conversa</p>
               </div>
             ) : (
-              <div className="divide-y divide-owly-border">
+              <div className="">
                 {conversations.map((conv) => {
-                  const ChannelIcon =
-                    channelIcons[conv.channel] || MessageSquare;
-                  const lastMessage = conv.messages[0];
+                  const Icon = channelIcons[conv.channel] || MessageSquare;
                   const isSelected = selectedId === conv.id;
+                  const lastMessage = conv.messages[0];
 
                   return (
                     <button
                       key={conv.id}
                       onClick={() => handleSelectConversation(conv.id)}
                       className={cn(
-                        "w-full px-4 py-3.5 text-left hover:bg-owly-primary-50/50 transition-colors",
-                        isSelected && "bg-owly-primary-50 border-l-2 border-l-owly-primary"
+                        "w-full px-6 py-4 text-left hover:bg-secondary/50 transition-all border-l-4 border-transparent active:scale-[0.99]",
+                        isSelected && "bg-primary/10 border-l-primary"
                       )}
                     >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={cn(
-                            "p-2 rounded-lg mt-0.5 flex-shrink-0",
-                            channelColors[conv.channel] ||
-                              "text-owly-primary bg-owly-primary-50"
-                          )}
-                        >
-                          <ChannelIcon className="h-4 w-4" />
+                      <div className="flex items-start gap-4">
+                        <div className={cn(
+                          "w-12 h-12 rounded-2xl flex items-center justify-center border font-black text-xs shadow-inner shrink-0",
+                          channelColors[conv.channel] || "bg-card border-border"
+                        )}>
+                           <Icon className="h-5 w-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium text-sm text-owly-text truncate">
-                              {conv.customerName}
-                            </p>
-                            <span className="text-xs text-owly-text-light flex-shrink-0 ml-2">
-                              {formatRelativeTime(conv.updatedAt)}
-                            </span>
+                          <div className="flex items-center justify-between gap-2">
+                             <p className="text-sm font-black italic tracking-tighter text-foreground truncate">
+                               {conv.customerName}
+                             </p>
+                             <span className="text-[9px] font-bold text-muted-foreground whitespace-nowrap">
+                               {formatRelativeTime(conv.updatedAt)}
+                             </span>
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-owly-text-light">
-                              {getChannelLabel(conv.channel)}
-                            </span>
-                            <span className="text-xs text-owly-text-light">
-                              --
-                            </span>
-                            <span className="text-xs text-owly-text-light">
-                              {conv._count.messages} messages
-                            </span>
-                          </div>
-                          {lastMessage && (
-                            <p className="text-sm text-owly-text-light mt-1 truncate">
-                              {lastMessage.role === "admin" && (
-                                <span className="text-owly-primary font-medium">
-                                  You:{" "}
-                                </span>
-                              )}
-                              {lastMessage.content}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <span
-                              className={cn(
-                                "px-2 py-0.5 rounded-full text-xs font-medium",
-                                getStatusColor(conv.status)
-                              )}
-                            >
-                              {conv.status}
-                            </span>
-                            {conv.tags.slice(0, 2).map((ct) => (
-                              <span
-                                key={ct.id}
-                                className="px-1.5 py-0.5 rounded text-xs font-medium bg-owly-primary-50 text-owly-primary"
-                              >
-                                {ct.tag.name}
-                              </span>
-                            ))}
+                          <p className="text-xs text-muted-foreground truncate font-medium mt-0.5 opacity-70">
+                             {lastMessage?.content || "Sem mensagens"}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-2">
+                             <div className={cn(
+                               "w-1.5 h-1.5 rounded-full",
+                               conv.status === 'active' ? "bg-emerald-500 animate-pulse" : "bg-zinc-500"
+                             )} />
+                             <span className="text-[8px] font-black uppercase tracking-widest opacity-50 italic">
+                               {conv.status}
+                             </span>
                           </div>
                         </div>
                       </div>
@@ -369,239 +281,142 @@ export default function ConversationsPage() {
           </div>
         </div>
 
-        {/* Right Panel - Conversation Detail */}
+        {/* Right Panel - Chat Detail */}
         <div
           className={cn(
-            "flex-1 flex flex-col bg-owly-bg",
+            "flex-1 flex flex-col bg-card rounded-[2.5rem] border border-border shadow-2xl overflow-hidden relative",
             !mobileShowDetail && "hidden md:flex"
           )}
         >
           {!selectedId ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-              <div className="p-5 rounded-full bg-owly-surface border border-owly-border mb-4">
-                <MessageSquare className="h-10 w-10 text-owly-text-light" />
-              </div>
-              <p className="font-semibold text-lg text-owly-text">
-                Select a conversation
-              </p>
-              <p className="text-sm text-owly-text-light mt-1 max-w-sm">
-                Choose a conversation from the list to view the full message
-                thread and reply to customers
-              </p>
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+               <div className="relative mb-6">
+                 <div className="absolute inset-0 bg-primary/20 blur-[60px] rounded-full scale-150" />
+                 <div className="relative w-24 h-24 rounded-[2rem] bg-secondary border border-border flex items-center justify-center text-muted-foreground/30">
+                    <MessageSquare className="h-10 w-10" />
+                 </div>
+               </div>
+               <h3 className="text-xl font-black italic tracking-tighter text-foreground mb-1 shadow-primary/20">Selecione um Atendimento</h3>
+               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed max-w-[240px]">
+                 Escolha uma conversa para visualizar o histórico e responder
+               </p>
             </div>
           ) : detailLoading && !selectedConversation ? (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-sm text-owly-text-light">Loading...</div>
+               <Zap className="h-6 w-6 text-primary animate-bounce shadow-primary/20" />
             </div>
-          ) : selectedConversation ? (
+          ) : (
             <>
-              {/* Conversation Header */}
-              <div className="px-4 py-3 bg-owly-surface border-b border-owly-border flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    setMobileShowDetail(false);
-                    setSelectedId(null);
-                    setSelectedConversation(null);
-                  }}
-                  className="md:hidden p-1.5 hover:bg-owly-primary-50 rounded-lg transition-colors"
-                >
-                  <ArrowLeft className="h-5 w-5 text-owly-text" />
-                </button>
-                <div
-                  className={cn(
-                    "p-2 rounded-lg flex-shrink-0",
-                    channelColors[selectedConversation.channel] ||
-                      "text-owly-primary bg-owly-primary-50"
-                  )}
-                >
-                  {(() => {
-                    const Icon =
-                      channelIcons[selectedConversation.channel] ||
-                      MessageSquare;
-                    return <Icon className="h-4 w-4" />;
-                  })()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-owly-text truncate">
-                      {selectedConversation.customerName}
-                    </h3>
-                    <span
-                      className={cn(
-                        "px-2 py-0.5 rounded-full text-xs font-medium",
-                        getStatusColor(selectedConversation.status)
-                      )}
-                    >
-                      {selectedConversation.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-owly-text-light">
-                    <span>
-                      {getChannelLabel(selectedConversation.channel)}
-                    </span>
-                    {selectedConversation.customerContact && (
-                      <>
-                        <span>--</span>
-                        <span>{selectedConversation.customerContact}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <select
-                    value={selectedConversation.status}
-                    onChange={(e) => handleStatusChange(e.target.value)}
-                    className="text-xs px-2 py-1.5 border border-owly-border rounded-lg bg-owly-bg focus:outline-none focus:ring-2 focus:ring-owly-primary/30 text-owly-text"
-                  >
-                    {statuses
-                      .filter((s) => s.value !== "all")
-                      .map((s) => (
-                        <option key={s.value} value={s.value}>
-                          {s.label}
-                        </option>
-                      ))}
-                  </select>
-                </div>
+              {/* Chat Header */}
+              <div className="p-6 border-b border-border/50 flex items-center justify-between">
+                 <div className="flex items-center gap-4">
+                    <button onClick={() => setMobileShowDetail(false)} className="md:hidden p-2 hover:bg-secondary rounded-xl">
+                       <ArrowLeft className="h-5 w-5" />
+                    </button>
+                    <div className="w-12 h-12 rounded-[1.25rem] bg-secondary border border-border flex items-center justify-center font-black italic text-sm text-primary">
+                       {selectedConversation?.customerName[0]}
+                    </div>
+                    <div>
+                       <h4 className="text-base font-black italic tracking-tighter leading-none">{selectedConversation?.customerName}</h4>
+                       <p className="text-xs font-bold text-muted-foreground mt-1 flex items-center gap-1.5 leading-none">
+                          <Clock className="h-3 w-3" />
+                          Último registro em {selectedConversation && new Date(selectedConversation.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                       </p>
+                    </div>
+                 </div>
+                 <div className="flex items-center gap-2">
+                    <button className="p-2.5 rounded-xl bg-secondary border border-border hover:bg-background transition-all">
+                       <Tag className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                    <button className="p-2.5 rounded-xl bg-secondary border border-border hover:bg-background transition-all">
+                       <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                 </div>
               </div>
 
-              {/* Tags Bar */}
-              {selectedConversation.tags.length > 0 && (
-                <div className="px-4 py-2 bg-owly-surface border-b border-owly-border flex items-center gap-2">
-                  <Tag className="h-3.5 w-3.5 text-owly-text-light" />
-                  {selectedConversation.tags.map((ct) => (
-                    <span
-                      key={ct.id}
-                      className="px-2 py-0.5 rounded-full text-xs font-medium"
-                      style={{
-                        backgroundColor: ct.tag.color + "20",
-                        color: ct.tag.color,
-                      }}
-                    >
-                      {ct.tag.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Messages Thread */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-                {selectedConversation.messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center">
-                    <MessageSquare className="h-8 w-8 text-owly-text-light opacity-40 mb-2" />
-                    <p className="text-sm text-owly-text-light">
-                      No messages in this conversation yet
-                    </p>
-                  </div>
-                ) : (
-                  selectedConversation.messages.map((msg) => {
-                    const isAdmin =
-                      msg.role === "admin" || msg.role === "assistant";
-                    const isSystem = msg.role === "system";
-
-                    if (isSystem) {
-                      return (
-                        <div key={msg.id} className="flex justify-center">
-                          <div className="px-3 py-1.5 bg-owly-surface border border-owly-border rounded-full text-xs text-owly-text-light">
-                            {msg.content}
-                          </div>
-                        </div>
-                      );
-                    }
-
+              {/* Chat Body */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+                 {selectedConversation?.messages.map((msg, idx) => {
+                    const isAdmin = msg.role === 'admin' || msg.role === 'assistant';
                     return (
-                      <div
-                        key={msg.id}
-                        className={cn(
-                          "flex",
-                          isAdmin ? "justify-end" : "justify-start"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "max-w-[75%] rounded-2xl px-4 py-2.5",
-                            isAdmin
-                              ? "bg-owly-primary text-white rounded-br-md"
-                              : "bg-owly-surface border border-owly-border text-owly-text rounded-bl-md"
-                          )}
-                        >
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span
-                              className={cn(
-                                "text-xs font-medium",
-                                isAdmin
-                                  ? "text-white/80"
-                                  : "text-owly-text-light"
-                              )}
-                            >
-                              {isAdmin
-                                ? msg.role === "assistant"
-                                  ? "AI Assistant"
-                                  : "Admin"
-                                : selectedConversation.customerName}
-                            </span>
-                          </div>
-                          <p className="text-sm whitespace-pre-wrap break-words">
-                            {msg.content}
-                          </p>
-                          <p
-                            className={cn(
-                              "text-xs mt-1",
-                              isAdmin
-                                ? "text-white/60"
-                                : "text-owly-text-light"
+                      <div key={msg.id} className={cn(
+                        "flex items-end gap-3 max-w-[85%] group transform transition-all duration-300 translate-y-0 opacity-100",
+                        isAdmin ? "ml-auto flex-row-reverse" : "mr-auto"
+                      )}>
+                         <div className={cn(
+                           "px-5 py-3 rounded-[1.5rem] shadow-sm relative overflow-hidden",
+                           isAdmin 
+                            ? "bg-primary text-primary-foreground rounded-br-none" 
+                            : "bg-secondary border border-border/50 text-foreground rounded-bl-none"
+                         )}>
+                            {msg.role === 'assistant' && (
+                               <div className="flex items-center gap-1 mb-1 opacity-50 uppercase text-[8px] font-black tracking-widest">
+                                 <Sparkles className="h-2 w-2" />
+                                 IA ClinicOS
+                               </div>
                             )}
-                          >
-                            {formatRelativeTime(msg.createdAt)}
-                          </p>
-                        </div>
+                            <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                            <span className={cn(
+                               "text-[9px] font-bold mt-2 block opacity-50 uppercase tracking-tighter",
+                               isAdmin ? "text-right" : "text-left"
+                            )}>
+                               {new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                         </div>
                       </div>
                     );
-                  })
-                )}
-                <div ref={messagesEndRef} />
+                 })}
+                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Reply Input */}
-              <div className="px-4 py-3 bg-owly-surface border-t border-owly-border">
-                <div className="flex items-end gap-2">
-                  <div className="flex-1 relative">
+              {/* Chat Footer / Input */}
+              <div className="p-6 border-t border-border/50">
+                 <div className="flex items-end gap-3 bg-secondary/30 p-2 rounded-[2rem] border border-border/50 focus-within:border-primary/30 focus-within:ring-4 focus-within:ring-primary/5 transition-all">
+                    <button className="p-2.5 rounded-full hover:bg-background text-muted-foreground hover:text-foreground transition-all">
+                       <Smile className="h-5 w-5" />
+                    </button>
+                    <button className="p-2.5 rounded-full hover:bg-background text-muted-foreground hover:text-foreground transition-all">
+                       <Paperclip className="h-5 w-5" />
+                    </button>
                     <textarea
+                      placeholder="Diga algo inteligente..."
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Type your reply... (Enter to send, Shift+Enter for new line)"
                       rows={1}
-                      className="w-full px-4 py-2.5 text-sm border border-owly-border rounded-xl bg-owly-bg focus:outline-none focus:ring-2 focus:ring-owly-primary/30 focus:border-owly-primary resize-none"
-                      style={{
-                        minHeight: "42px",
-                        maxHeight: "120px",
-                      }}
+                      className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium resize-none min-h-[44px] py-3 px-2 custom-scrollbar"
                       onInput={(e) => {
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = "auto";
-                        target.style.height =
-                          Math.min(target.scrollHeight, 120) + "px";
+                         const target = e.target as HTMLTextAreaElement;
+                         target.style.height = "auto";
+                         target.style.height = Math.min(target.scrollHeight, 120) + "px";
                       }}
                     />
-                  </div>
-                  <button
-                    onClick={handleSendReply}
-                    disabled={!replyText.trim() || sending}
-                    className={cn(
-                      "p-2.5 rounded-xl transition-colors flex-shrink-0",
-                      replyText.trim() && !sending
-                        ? "bg-owly-primary text-white hover:bg-owly-primary-dark"
-                        : "bg-owly-border text-owly-text-light cursor-not-allowed"
-                    )}
-                  >
-                    <Send className="h-4 w-4" />
-                  </button>
-                </div>
+                    <button
+                      onClick={handleSendReply}
+                      disabled={!replyText.trim() || sending}
+                      className={cn(
+                        "w-11 h-11 rounded-full flex items-center justify-center transition-all bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 active:scale-[0.95] disabled:opacity-50 disabled:scale-100",
+                        sending && "animate-pulse"
+                      )}
+                    >
+                       <Send className="h-5 w-5 ml-0.5" />
+                    </button>
+                 </div>
+                 <div className="flex items-center justify-center gap-4 mt-3">
+                    <p className="text-[10px] font-black italic tracking-widest text-muted-foreground/30 uppercase flex items-center gap-1.5">
+                       <Zap className="h-2.5 w-2.5 fill-current" />
+                       Pressione Enter para enviar
+                    </p>
+                 </div>
               </div>
             </>
-          ) : null}
+          )}
         </div>
       </div>
-    </>
+
+      {/* Decorative BG Elements */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[150px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/3 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+    </div>
   );
 }

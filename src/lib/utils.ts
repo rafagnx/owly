@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("tr-TR", {
+  return new Date(date).toLocaleDateString("pt-BR", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -23,43 +23,43 @@ export function formatRelativeTime(date: Date | string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMins < 1) return "Agora mesmo";
+  if (diffMins < 60) return `Há ${diffMins}m`;
+  if (diffHours < 24) return `Há ${diffHours}h`;
+  if (diffDays < 7) return `Há ${diffDays}d`;
   return formatDate(date);
 }
 
 export function getChannelLabel(channel: string): string {
   const labels: Record<string, string> = {
     whatsapp: "WhatsApp",
-    email: "Email",
-    phone: "Phone",
+    email: "E-mail",
+    phone: "Telefone",
   };
   return labels[channel] || channel;
 }
 
 export function getStatusColor(status: string): string {
   const colors: Record<string, string> = {
-    active: "bg-green-100 text-green-700",
-    resolved: "bg-blue-100 text-blue-700",
-    escalated: "bg-orange-100 text-orange-700",
-    closed: "bg-gray-100 text-gray-700",
-    open: "bg-yellow-100 text-yellow-700",
-    in_progress: "bg-blue-100 text-blue-700",
-    connected: "bg-green-100 text-green-700",
-    disconnected: "bg-red-100 text-red-700",
-    error: "bg-red-100 text-red-700",
+    active: "bg-green-500/10 text-green-500",
+    resolved: "bg-blue-500/10 text-blue-500",
+    escalated: "bg-owly-primary/10 text-owly-primary",
+    closed: "bg-white/10 text-white/60",
+    open: "bg-yellow-500/10 text-yellow-500",
+    in_progress: "bg-blue-500/10 text-blue-500",
+    connected: "bg-green-500/10 text-green-500",
+    disconnected: "bg-red-500/10 text-red-500",
+    error: "bg-red-500/10 text-red-500",
   };
-  return colors[status] || "bg-gray-100 text-gray-700";
+  return colors[status] || "bg-white/5 text-white/40";
 }
 
 export function getPriorityColor(priority: string): string {
   const colors: Record<string, string> = {
-    low: "bg-gray-100 text-gray-700",
-    medium: "bg-yellow-100 text-yellow-700",
-    high: "bg-orange-100 text-orange-700",
-    urgent: "bg-red-100 text-red-700",
+    low: "bg-white/10 text-white/50",
+    medium: "bg-yellow-500/10 text-yellow-500",
+    high: "bg-owly-primary/10 text-owly-primary",
+    urgent: "bg-red-500/10 text-red-500",
   };
-  return colors[priority] || "bg-gray-100 text-gray-700";
+  return colors[priority] || "bg-white/5 text-white/40";
 }

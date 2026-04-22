@@ -45,12 +45,14 @@ export const PERMISSIONS = {
   "team:create": ["admin"],
   "team:update": ["admin"],
   "team:delete": ["admin"],
+  "team:manage": ["admin"],
 
   // Automation
   "automation:read": ["viewer", "agent", "supervisor", "admin"],
   "automation:create": ["supervisor", "admin"],
   "automation:update": ["supervisor", "admin"],
   "automation:delete": ["admin"],
+  "automation:execute": ["supervisor", "admin"],
 
   // Webhooks
   "webhooks:read": ["supervisor", "admin"],

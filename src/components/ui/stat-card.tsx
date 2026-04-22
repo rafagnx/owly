@@ -6,7 +6,7 @@ interface StatCardProps {
   value: string | number;
   change?: string;
   changeType?: "positive" | "negative" | "neutral";
-  icon: LucideIcon;
+  icon?: LucideIcon;
   iconColor?: string;
 }
 
@@ -16,31 +16,42 @@ export function StatCard({
   change,
   changeType = "neutral",
   icon: Icon,
-  iconColor = "bg-owly-primary-50 text-owly-primary",
 }: StatCardProps) {
   return (
-    <div className="bg-owly-surface rounded-xl border border-owly-border p-5 hover:shadow-md transition-shadow">
+    <div className="bento-card group relative overflow-hidden flex flex-col justify-between min-h-[160px]">
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-owly-text-light">{title}</p>
-          <p className="text-2xl font-bold text-owly-text mt-1">{value}</p>
-          {change && (
-            <p
-              className={cn(
-                "text-xs mt-1 font-medium",
-                changeType === "positive" && "text-owly-success",
-                changeType === "negative" && "text-owly-danger",
-                changeType === "neutral" && "text-owly-text-light"
-              )}
-            >
-              {change}
-            </p>
-          )}
+        <div className="space-y-1">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest italic opacity-60">
+            {title}
+          </p>
+          <h4 className="text-4xl font-black text-foreground tracking-tighter font-mono italic">
+            {value}
+          </h4>
         </div>
-        <div className={cn("p-2.5 rounded-lg", iconColor)}>
-          <Icon className="h-5 w-5" />
+        {Icon && (
+          <div className="p-3 rounded-2xl bg-secondary text-muted-foreground group-hover:text-primary transition-all group-hover:scale-110 shadow-sm border">
+            <Icon className="h-5 w-5" />
+          </div>
+        )}
+      </div>
+      
+      <div className="flex items-center justify-between mt-4">
+        {change && (
+          <div className={cn(
+            "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase italic",
+            changeType === "positive" ? "bg-green-500/10 text-green-500" : 
+            changeType === "negative" ? "bg-red-500/10 text-red-500" : "bg-muted text-muted-foreground"
+          )}>
+            {changeType === "positive" ? "↑" : changeType === "negative" ? "↓" : ""} {change}
+          </div>
+        )}
+        <div className="text-[10px] text-muted-foreground/40 font-bold uppercase tracking-tighter italic">
+          Métrica Real-time
         </div>
       </div>
+
+      {/* Decorative Blob */}
+      <div className="absolute top-[-20%] right-[-10%] w-20 h-20 bg-primary/5 blur-2xl rounded-full group-hover:bg-primary/10 transition-colors" />
     </div>
   );
 }

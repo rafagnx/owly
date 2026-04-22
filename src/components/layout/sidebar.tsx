@@ -22,8 +22,9 @@ import {
   Shield,
   FileCode,
   Webhook,
-  ChevronLeft,
   ChevronRight,
+  Search,
+  CreditCard,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -34,131 +35,147 @@ interface NavSection {
 
 const sections: NavSection[] = [
   {
+    title: "Atendimento",
     items: [
-      { name: "Dashboard", href: "/", icon: LayoutDashboard },
-      { name: "Conversations", href: "/conversations", icon: MessageSquare },
-      { name: "Customers", href: "/customers", icon: Contact },
-      { name: "Tickets", href: "/tickets", icon: Ticket },
+      { name: "Painel", href: "/", icon: LayoutDashboard },
+      { name: "Conversas", href: "/conversations", icon: MessageSquare },
+      { name: "Contatos", href: "/customers", icon: Contact },
+      { name: "Meus Chamados", href: "/tickets", icon: Ticket },
     ],
   },
   {
-    title: "Knowledge",
+    title: "Inteligência",
     items: [
-      { name: "Knowledge Base", href: "/knowledge", icon: BookOpen },
-      { name: "Canned Responses", href: "/canned-responses", icon: Zap },
-      { name: "Automation", href: "/automation", icon: Workflow },
-      { name: "Business Hours", href: "/business-hours", icon: Clock },
+      { name: "Fluxos (Builder)", href: "/flows", icon: Workflow },
+      { name: "Agentes IA", href: "/ai-agents", icon: Radio },
+      { name: "Base de Conhecimento", href: "/knowledge", icon: BookOpen },
     ],
   },
   {
-    title: "Team",
+    title: "Marketing & Prod.",
     items: [
-      { name: "Team", href: "/team", icon: Users },
-      { name: "SLA Rules", href: "/sla", icon: Timer },
+      { name: "Campanhas", href: "/campaigns", icon: Zap },
+      { name: "Respostas Rápidas", href: "/canned-responses", icon: ScrollText },
+      { name: "Horários", href: "/business-hours", icon: Clock },
     ],
   },
   {
-    title: "Channels",
+    title: "Configurações",
     items: [
-      { name: "Channels", href: "/channels", icon: Radio },
-      { name: "Webhooks", href: "/webhooks", icon: Webhook },
-    ],
-  },
-  {
-    title: "Insights",
-    items: [
-      { name: "Analytics", href: "/analytics", icon: BarChart3 },
-      { name: "Activity Log", href: "/activity", icon: ScrollText },
-    ],
-  },
-  {
-    title: "System",
-    items: [
-      { name: "Administration", href: "/admin", icon: Shield },
-      { name: "API Docs", href: "/api-docs", icon: FileCode },
-      { name: "Settings", href: "/settings", icon: Settings },
+      { name: "Conexões", href: "/channels", icon: Webhook },
+      { name: "Financeiro", href: "/billing", icon: CreditCard },
+      { name: "Equipe", href: "/team", icon: Users },
+      { name: "SLA & Regras", href: "/sla", icon: Timer },
+      { name: "Ajustes", href: "/settings", icon: Settings },
     ],
   },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <aside
-      className={cn(
-        "flex flex-col bg-owly-sidebar text-white transition-all duration-300",
-        collapsed ? "w-16" : "w-60"
-      )}
-    >
-      <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-        <Image
-          src="/owly.png"
-          alt="Owly"
-          width={32}
-          height={32}
-          className="rounded-lg flex-shrink-0"
-        />
-        {!collapsed && (
-          <div className="overflow-hidden">
-            <h1 className="text-base font-bold tracking-tight">Owly</h1>
-            <p className="text-[10px] text-white/50">AI Customer Support</p>
+    <aside className="w-64 bg-background flex flex-col h-screen border-r border-border">
+      {/* Brand Header */}
+      <div className="p-6 pb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-black text-primary-foreground italic">
+             C
           </div>
-        )}
+          <span className="font-black text-foreground text-xl tracking-tighter italic uppercase">Clinic<span className="text-primary NOT-italic">OS</span></span>
+        </div>
+        <button className="text-muted-foreground hover:text-foreground transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+        </button>
       </div>
 
-      <nav className="flex-1 px-2 py-3 overflow-y-auto space-y-3">
+      {/* Modern Search Bar */}
+      <div className="px-6 py-4">
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-foreground transition-colors" />
+          <input
+            type="text"
+            placeholder="Buscar"
+            className="w-full bg-secondary border border-border rounded-lg py-2 pl-9 pr-8 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-all"
+          />
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 bg-muted rounded text-[9px] text-muted-foreground font-mono">
+            ⌘ K
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-6 custom-scrollbar">
         {sections.map((section, si) => (
           <div key={si}>
-            {section.title && !collapsed && (
-              <p className="px-3 mb-1 text-[10px] uppercase tracking-wider text-white/40 font-medium">
+            {section.title && (
+              <p className="px-3 mb-3 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em] font-mono">
                 {section.title}
               </p>
             )}
-            {collapsed && si > 0 && (
-              <div className="mx-3 mb-2 border-t border-white/10" />
-            )}
-            <div className="space-y-0.5">
+            <nav className="space-y-1">
               {section.items.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== "/" && pathname.startsWith(item.href));
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
 
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      "flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors",
+                      "flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all group",
                       isActive
-                        ? "bg-owly-sidebar-active text-white"
-                        : "text-white/65 hover:bg-owly-sidebar-hover hover:text-white"
+                        ? "bg-secondary text-foreground font-medium shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                     )}
-                    title={collapsed ? item.name : undefined}
                   >
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
-                    {!collapsed && <span>{item.name}</span>}
+                    <div className="flex items-center gap-3">
+                      <Icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                      <span>{item.name}</span>
+                    </div>
                   </Link>
                 );
               })}
-            </div>
+            </nav>
           </div>
         ))}
-      </nav>
 
-      <div className="px-2 py-2 border-t border-white/10">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center justify-center w-full py-1.5 rounded-md text-white/40 hover:text-white hover:bg-owly-sidebar-hover transition-colors"
-        >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
+        {/* Favorites Mock based on image */}
+        <div>
+          <p className="px-3 mb-3 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em] font-mono">
+            Favoritos
+          </p>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 cursor-pointer group transition-all">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 rounded-sm bg-secondary border border-border overflow-hidden flex items-center justify-center text-[8px] font-bold">W</div>
+                <span>WhatsApp</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground/40 font-bold tracking-tighter italic">CANAL</span>
+            </div>
+            <div className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 cursor-pointer group transition-all">
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 rounded-sm bg-secondary border border-border overflow-hidden flex items-center justify-center text-[8px] font-bold">S</div>
+                <span>Suporte VIP</span>
+              </div>
+              <span className="text-[10px] text-muted-foreground/40 font-bold tracking-tighter italic">ADMIN</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* User Footer refined */}
+      <div className="p-4 mt-auto border-t border-border">
+        <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-secondary transition-colors cursor-pointer group">
+          <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs">
+            R
+          </div>
+          <div className="flex-1 min-w-0 pr-1">
+            <p className="text-sm font-bold text-foreground truncate uppercase tracking-tighter italic">Rafael Admin</p>
+            <p className="text-[10px] text-muted-foreground truncate">rafael@owly.ai</p>
+          </div>
+        </div>
       </div>
     </aside>
+
   );
 }

@@ -17,6 +17,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Users,
+  Shield,
+  Clock,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 
@@ -132,8 +134,8 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/users");
       if (res.ok) {
-        const data = await res.json();
-        setUsers(data);
+        const result = await res.json();
+        setUsers(result.data || []);
       }
     } catch (err) {
       console.error("Failed to fetch users:", err);
@@ -147,8 +149,8 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/api-keys");
       if (res.ok) {
-        const data = await res.json();
-        setApiKeys(data);
+        const result = await res.json();
+        setApiKeys(result.data || []);
       }
     } catch (err) {
       console.error("Failed to fetch API keys:", err);
@@ -344,15 +346,28 @@ export default function AdminPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <>
-      <Header
-        title="Administration"
-        description="Manage users and API access"
-      />
+    <div className="flex-1 overflow-auto bg-[#09090B]">
+      <div className="max-w-[1240px] mx-auto p-8 lg:p-12 space-y-12 animate-fade-in">
+        
+        {/* Orbit Style Breadcrumb & Header */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-10">
+            <div className="flex items-center gap-3 text-[11px] font-bold tracking-[0.15em] text-[#52525B] uppercase font-mono">
+              <Shield className="h-3.5 w-3.5 text-owly-primary" />
+              <span>ADMINISTRAÇÃO</span>
+            </div>
+            <div className="text-[11px] font-bold tracking-[0.1em] text-[#3F3F46] font-mono">
+              GESTÃO DE ACESSO E SEGURANÇA
+            </div>
+          </div>
+          
+          <h1 className="text-5xl font-extrabold tracking-tight text-white leading-tight">
+            Gestão do <span className="opacity-80">Sistema</span>
+          </h1>
+        </div>
 
-      <div className="flex-1 overflow-auto p-6 space-y-6">
         {/* Tab switcher */}
-        <div className="flex gap-1 bg-owly-bg rounded-lg p-1 w-fit">
+        <div className="flex gap-4 p-1 w-fit border-b border-[#1F1F23]">
           <button
             onClick={() => setActiveTab("users")}
             className={cn(
@@ -925,12 +940,12 @@ export default function AdminPage() {
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-lg transition-colors"
               >
                 {deletingKey && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Delete
+                Excluir
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

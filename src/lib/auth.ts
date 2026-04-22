@@ -5,12 +5,14 @@ import { cookies } from "next/headers";
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
-  if (!secret && process.env.NODE_ENV !== "test") {
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+  
+  if (!secret && process.env.NODE_ENV !== "test" && !isBuildTime) {
     throw new Error(
       "JWT_SECRET environment variable is required. Set it before starting the application."
     );
   }
-  return secret || "test-only-fallback-secret";
+  return secret || "build-time-placeholder-secret";
 }
 
 const JWT_SECRET = getJwtSecret();

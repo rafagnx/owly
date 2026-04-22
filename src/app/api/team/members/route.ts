@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
@@ -77,6 +78,7 @@ export async function POST(request: NextRequest) {
         role: role?.trim() || "member",
         expertise: expertise?.trim() || "",
         departmentId,
+        pauseReason: "",
       },
       include: {
         department: {
