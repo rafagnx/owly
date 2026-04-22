@@ -137,8 +137,10 @@ export function middleware(request: NextRequest) {
   // ========== TENANT & CUSTOM DOMAIN ROUTES ==========
   const publicPaths = ["/login", "/setup", "/api/auth", "/api/health", "/api/openapi.json", "/api/ping"];
   const isPublic = publicPaths.some((p) => pathname.startsWith(p));
-
+  
+  // Allow webhook/channel endpoints without auth
   if (
+    pathname.startsWith("/api/channels/whatsapp") ||
     pathname.startsWith("/api/channels/phone/") ||
     pathname.startsWith("/api/channels/sms") ||
     pathname.startsWith("/api/channels/telegram") ||
@@ -177,8 +179,18 @@ export function middleware(request: NextRequest) {
 
   const token = request.cookies.get("owly-token")?.value;
   const apiKey = request.headers.get("x-api-key");
+  
+  // Skip auth check for public channel webhooks
+  const isChannelWebhook = 
+    pathname.startsWith("/api/channels/whatsapp") ||
+    pathname.startsWith("/api/channels/whatsapp-cloud") ||
+    pathname.startsWith("/api/channels/telegram") ||
+    pathname.startsWith("/api/channels/phone/") ||
+    pathname.startsWith("/api/channels/sms") ||
+    pathname.startsWith("/api/channels/instagram") ||
+    pathname.startsWith("/api/channels/messenger");
 
-  if (!token && !apiKey) {
+  if (!token && !apiKey && !isChannelWebhook) {
     if (pathname.startsWith("/api/")) {
       return addHeaders(
         NextResponse.json(
